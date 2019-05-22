@@ -46,12 +46,11 @@ FSManager::FSManager(const char *name, PinName mosi, PinName miso, PinName sclk,
 //------------------------------------------------------------------------------------
 int FSManager::init() {
 	// Initialize NVS
-	esp_err_t err = nvs_flash_init();
+	esp_err_t err = nvs_flash_init_partition(DEFAULT_NVSInterface_Partition);
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
 		// NVS partition was truncated and needs to be erased
-		// Retry nvs_flash_init
-		ESP_ERROR_CHECK(nvs_flash_erase());
-		err = nvs_flash_init();
+		ESP_ERROR_CHECK(nvs_flash_erase_partition(DEFAULT_NVSInterface_Partition));
+		err = nvs_flash_init_partition(DEFAULT_NVSInterface_Partition);
 	}
 	ESP_ERROR_CHECK( err );
 	if(err != ESP_OK){
@@ -61,7 +60,7 @@ int FSManager::init() {
 	// Open
 	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Chequeando sistema NVS ");
 
-	err = nvs_open(_name, NVS_READWRITE, &_handle);
+	err = nvs_open_from_partition(DEFAULT_NVSInterface_Partition, _name, NVS_READWRITE, &_handle);
 	if (err != ESP_OK) {
 		_handle = (nvs_handle)NULL;
 		DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_OPEN [%d]. No se puede abrir el sistema NVS", err);
@@ -78,7 +77,7 @@ int FSManager::init() {
 bool FSManager::open(){
 	_mtx.lock();
 	nvs_handle hnd;
-	esp_err_t err = nvs_open(_name, NVS_READWRITE, &hnd);
+	esp_err_t err = nvs_open_from_partition(DEFAULT_NVSInterface_Partition, _name, NVS_READWRITE, &hnd);
 	if (err != ESP_OK) {
 		DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_OPEN [%d] al abrir el sistema NVS", err);
 		_mtx.unlock();
@@ -86,14 +85,12 @@ bool FSManager::open(){
 	}
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS abierto.");
 	_handle = hnd;
-//	_mtx.unlock();
 	return true;
 }
 
 
 //------------------------------------------------------------------------------------
 void FSManager::close(){
-//	_mtx.lock();
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <close>");
 		_mtx.unlock();
@@ -109,10 +106,8 @@ void FSManager::close(){
 //------------------------------------------------------------------------------------
 int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
 	esp_err_t err = ESP_ERR_NVS_INVALID_HANDLE;
-//	_mtx.lock();
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <save>");
-//		_mtx.unlock();
 		return (int)err;
 	}
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Escribiendo %d datos en id %s...", size, data_id);
@@ -165,19 +160,16 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
     if(err != ESP_OK){
     	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_WR Error [%d] al escribir en id %s", (int)err, data_id);
     	_error = (int)err;
-//    	_mtx.unlock();
     	return _error;
     }
     err = nvs_commit(_handle);
     if(err == ESP_OK){
     	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos escritos en id %s", data_id);
     	_error = (int)err;
-//    	_mtx.unlock();
     	return _error;
     }
     DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_COMMIT Error [%d] al escribir en id %s", (int)err, data_id);
     _error = (int)err;
-//    _mtx.unlock();
     return _error;
 }
 
@@ -185,10 +177,8 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
 //------------------------------------------------------------------------------------
 int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
 	esp_err_t err = ESP_ERR_NVS_INVALID_HANDLE;
-//	_mtx.lock();
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <restore>");
-//		_mtx.unlock();
 		return (int)err;
 	}
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Leyendo %d datos de id %s...", size, data_id);
@@ -241,11 +231,9 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
 	_error = (int)err;
     if(err == ESP_OK){
     	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos leídos correctamente de id %s", data_id);
-//    	_mtx.unlock();
     	return _error;
     }
     DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_READ. Error [%d] al leer %d datos de id %s", (int)err, size, data_id);
-//    _mtx.unlock();
     return _error;
 }
 
