@@ -13,6 +13,7 @@
 
 #include "mbed.h"
 
+#define DEFAULT_NVSInterface_Partition	(const char*)"nvs_key"
 
 class NVSInterface{
   public:
