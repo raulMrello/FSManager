@@ -28,7 +28,7 @@ static const char* _MODULE_ = "[FS]............";
 //------------------------------------------------------------------------------------
 //-- PUBLIC METHODS IMPLEMENTATION ---------------------------------------------------
 //------------------------------------------------------------------------------------
-
+#define ESP_PLATFORM  1
 #if ESP_PLATFORM == 1
 
 
@@ -45,8 +45,19 @@ FSManager::FSManager(const char *name, PinName mosi, PinName miso, PinName sclk,
 
 //------------------------------------------------------------------------------------
 int FSManager::init() {
-	// Initialize NVS
-	esp_err_t err = nvs_flash_init_partition(DEFAULT_NVSInterface_Partition);
+	// Initialize NVS and the default partition
+	esp_err_t err = nvs_flash_init();
+	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
+		// NVS partition was truncated and needs to be erased
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		err = nvs_flash_init();
+	}
+	ESP_ERROR_CHECK( err );
+	if(err != ESP_OK){
+		return ESP_FAIL;
+	}
+
+	err = nvs_flash_init_partition(DEFAULT_NVSInterface_Partition);
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
 		// NVS partition was truncated and needs to be erased
 		ESP_ERROR_CHECK(nvs_flash_erase_partition(DEFAULT_NVSInterface_Partition));
