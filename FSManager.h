@@ -20,20 +20,12 @@
 #include "Heap.h"
 #include "NVSInterface.h"
 
-#if __MBED__ == 1
-#include "SPIFBlockDevice.h"
-#include "FATFileSystem.h"
-#endif
 
 
 #define FSManager_DEBUG		1
 
 
-#if __MBED__ == 1
-class FSManager : public FATFileSystem, public NVSInterface{
-#else
 class FSManager : public NVSInterface{
-#endif
 
   public:
 
@@ -56,13 +48,7 @@ class FSManager : public NVSInterface{
      *  Inicializa el sistema de ficheros
      *  @return 0 (correcto), <0 (código de error)
      */
-    #if __MBED__ == 1
-    virtual int init(){
-        return 0;
-    }  
-    #else
     virtual int init();
-    #endif
 
 
 	/** Habilita canal de depuración por defecto <printf>
@@ -112,78 +98,6 @@ class FSManager : public NVSInterface{
      */   
     virtual int restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
 
-
-
-	#if __MBED__ == 1
-
-	 /** getBlockDevice
-	 *  Obtiene una referencia al BlockDevice implementado
-	 *  @return _name Nombre asignado
-	 */
-	BlockDevice* getBlockDevice() { return _bd; }
-
-
-
-	/** openRecordSet
-	 *  Abre un manejador de registros a partir de un identificador
-	 *  @param data_id Identificador del recordset a abrir
-	 *  @return identificador del recordset o 0 en caso de error
-	 */
-	int32_t openRecordSet(const char* data_id);
-
-	/** closeRecordSet
-	 *  Cierra un manejador de registros a partir de un identificador
-	 *  @param recordset Manejador de registros a cerrar
-	 *  @return resultado de la operación: 0 (ok), !=0 (error)
-	 */
-	int32_t closeRecordSet(int32_t recordset);
-
-
-	/** writeRecordSet
-	 *  Inserta un registro de un tamaño desde una posición dada, en un recordset abierto previamente
-	 *  @param recordset Identificador del manejador de registros
-	 *  @param data  Puntero que recibe los datos recuperados
-	 *  @param record_size Tamaño del registro a recuperar
-	 *  @param pos Puntero con la posición de la que leer y que recibe la nueva posición actualizada
-	 *  @return Número de bytes escritos. Debe coincidir con record_size
-	 */
-	int32_t writeRecordSet(int32_t recordset, void* data, uint32_t record_size, int32_t* pos);
-
-
-	/** readRecordSet
-	 *  Obtiene un registro de un tamaño desde una posición dada, en un recordset abierto previamente
-	 *  @param recordset Identificador del manejador de registros
-	 *  @param data  Puntero que recibe los datos recuperados
-	 *  @param record_size Tamaño del registro a recuperar
-	 *  @param pos Puntero con la posición de la que leer y que recibe la nueva posición actualizada
-	 *  @return Número de bytes escritos. Debe coincidir con record_size
-	 */
-	int32_t readRecordSet(int32_t recordset, void* data, uint32_t record_size, int32_t* pos);
-
-
-	/** getRecord
-	 *  Recupera un registro de un tamaño desde una posición dada. El recordset se abre y se cierra internamente
-	 *  @param data_id Identificador de los datos a recuperar
-	 *  @param data  Puntero que recibe los datos recuperados
-	 *  @param record_size Tamaño del registro a recuperar
-	 *  @param pos Puntero con la posición de la que leer y que recibe la nueva posición actualizada
-	 *  @return Número de bytes leídos. Debe coincidir con record_size
-	 */
-	int32_t getRecord(const char* data_id, void* data, uint32_t record_size, int32_t* pos);
-
-
-	/** setRecord
-	 *  Escribe un registro de un tamaño desde una posición dada
-	 *  @param data_id Identificador de los datos a grabar
-	 *  @param data  Puntero que recibe los datos recuperados
-	 *  @param record_size Tamaño del registro a recuperar
-	 *  @param pos Puntero con la posición de la que leer y que recibe la nueva posición actualizada
-	 *  @return Número de bytes escritos. Debe coincidir con record_size
-	 */
-	int32_t setRecord(const char* data_id, void* data, uint32_t record_size, int32_t* pos);
-
-	#endif
-
 protected:
 
 	/** Flag para habilitar trazas de depuración por defecto */
@@ -198,9 +112,6 @@ private:
 	// const char* _name;          /// Nombre del sistema de ficheros
 	// int _error;                 /// Último error registrado
 
-	#if __MBED__ == 1
-	SPIFBlockDevice* _bd;       /// BlockDevice implementado
-	#endif
 	#if ESP_PLATFORM == 1
 	nvs_handle _handle;
 	#endif

@@ -28,23 +28,28 @@ static const char* _MODULE_ = "[FS]............";
 //------------------------------------------------------------------------------------
 //-- PUBLIC METHODS IMPLEMENTATION ---------------------------------------------------
 //------------------------------------------------------------------------------------
-#define ESP_PLATFORM  1
-#if ESP_PLATFORM == 1
+
 
 
 //------------------------------------------------------------------------------------
 FSManager::FSManager(const char *name, PinName mosi, PinName miso, PinName sclk, PinName csel, int freq, bool defdbg) : NVSInterface(name) {
+    #if ESP_PLATFORM == 1
 	_ready = false;
 	_defdbg = defdbg;
 	// inicializo
 	_mtx.lock();
 	init();
 	_mtx.unlock();
+    #elif __MBED__ == 1
+    //TODO
+    #warning TODO FSManager::FSManager()
+    #endif
 }
 
 
 //------------------------------------------------------------------------------------
 int FSManager::init() {
+    #if ESP_PLATFORM == 1
 	// Initialize NVS and the default partition
 	esp_err_t err = nvs_flash_init();
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
@@ -81,11 +86,17 @@ int FSManager::init() {
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS OK!");
 	_ready = true;
 	return err;
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::init()
+    return -1;
+    #endif
 }
 
 
 //------------------------------------------------------------------------------------
 bool FSManager::open(){
+    #if ESP_PLATFORM == 1
 	_mtx.lock();
 	nvs_handle hnd;
 	esp_err_t err = nvs_open_from_partition(DEFAULT_NVSInterface_Partition, _name, NVS_READWRITE, &hnd);
@@ -97,11 +108,17 @@ bool FSManager::open(){
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS abierto.");
 	_handle = hnd;
 	return true;
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::open()
+    return false;
+    #endif
 }
 
 
 //------------------------------------------------------------------------------------
 void FSManager::close(){
+    #if ESP_PLATFORM == 1
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <close>");
 		_mtx.unlock();
@@ -111,11 +128,16 @@ void FSManager::close(){
 	nvs_close(_handle);
 	_handle = 0;
 	_mtx.unlock();
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::close()
+    #endif
 }
 
 
 //------------------------------------------------------------------------------------
 int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
+    #if ESP_PLATFORM == 1
 	esp_err_t err = ESP_ERR_NVS_INVALID_HANDLE;
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <save>");
@@ -182,11 +204,17 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
     DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_COMMIT Error [%d] al escribir en id %s", (int)err, data_id);
     _error = (int)err;
     return _error;
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::save()
+    return -1;
+    #endif
 }
 
 
 //------------------------------------------------------------------------------------
 int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
+    #if ESP_PLATFORM == 1
 	esp_err_t err = ESP_ERR_NVS_INVALID_HANDLE;
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <restore>");
@@ -246,208 +274,13 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
     }
     DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_READ. Error [%d] al leer %d datos de id %s", (int)err, size, data_id);
     return _error;
-}
-
-#endif
-
-#if __MBED__ == 1
-//------------------------------------------------------------------------------------
-FSManager::FSManager(const char *name, PinName mosi, PinName miso, PinName sclk, PinName csel, int freq) : FATFileSystem(name), NVSInterface(name) {
-
-    // Creo el block device para la spi flash
-    _bd = new SPIFBlockDevice(mosi, miso, sclk, csel, freq);
-    _bd->init();
-    
-    // Monto el sistema de ficheros en el blockdevice
-    _error = FATFileSystem::mount(_bd);
-    
-    // Chequeo si hay información de formato, en caso de error formateo y creo archivo
-    if(!ready()){
-        _error = FATFileSystem::format(_bd);
-        FILE* fd = fopen("/fs/format_info.txt", "w");
-        if(fd){
-            _error = fputs("Formateado correctamente.", fd);
-            _error = fclose(fd);
-        }
-    }
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::restore()
+    return -1;
+    #endif
 }
 
 
-//------------------------------------------------------------------------------------
-bool FSManager::ready() {
-    FILE* fd = fopen("/fs/format_info.txt", "r");
-    if(!fd){
-        return false;
-    }
-    char buff[32] = {0};
-    if(fgets(&buff[0], 32, fd) == 0){
-        _error = fclose(fd);
-        return false;
-    }
-    _error = fclose(fd);
-    if(strcmp(buff, "Formateado correctamente.) != 0){
-        return false;
-    }
-    return true;
-}
-
-
-//------------------------------------------------------------------------------------
-int FSManager::save(const char* data_id, void* data, uint32_t size){
-    char * filename = (char*)Heap::memAlloc(strlen(data_id) + strlen("/fs/.dat") + 1);
-    if(!filename){
-        return -1;
-    }
-    sprintf(filename, "/fs/%s.dat", data_id);
-    FILE* fd = fopen(filename, "w");
-    int written = 0;
-    if(fd){
-        // reescribe desde el comienzo
-        fseek(fd, 0, SEEK_SET);
-        if(data && size){
-            written = fwrite(data, 1, size, fd);
-        }
-        fclose(fd);
-    }
-    Heap::memFree(filename);
-    return written;
-}
-
-
-//------------------------------------------------------------------------------------
-int FSManager::restore(const char* data_id, void* data, uint32_t size){
-    char * filename = (char*)Heap::memAlloc(strlen(data_id) + strlen("/fs/.dat") + 1);
-    if(!filename){
-        return -1;
-    }
-    sprintf(filename, "/fs/%s.dat", data_id);
-    FILE* fd = fopen(filename, "r");
-    int rd = 0;
-    if(fd){
-        if(data && size){
-            rd = fread(data, 1, size, fd);
-        }
-        fclose(fd);
-    }
-    Heap::memFree(filename);
-    return rd;
-}
-
-
-//------------------------------------------------------------------------------------
-int32_t FSManager::openRecordSet(const char* data_id){
-    char * filename = (char*)Heap::memAlloc(strlen(data_id) + strlen("/fs/.dat") + 1);
-    if(!filename){
-        return 0;
-    }
-    sprintf(filename, "/fs/%s.dat", data_id);
-    FILE* fd = fopen(filename, "r+");
-    Heap::memFree(filename);
-    return (int32_t)fd;    
-}
-
-
-//------------------------------------------------------------------------------------
-int32_t FSManager::closeRecordSet(int32_t recordset){
-    return (int32_t)fclose((FILE*)recordset);
-}
-
-
-//------------------------------------------------------------------------------------
-int32_t FSManager::writeRecordSet(int32_t recordset, void* data, uint32_t record_size, int32_t* pos){
-    if(!recordset || !data || !record_size){
-        return 0;
-    }
-    int wr = 0;
-    int32_t vpos = (pos)? (*pos) : 0;
-    // se sitúa en la posición deseada
-    if(pos){
-        fseek((FILE*)recordset, vpos, SEEK_SET);
-    }
-    // actualiza el registro
-    wr = fwrite(data, 1, record_size, (FILE*)recordset);    
-    vpos += wr;
-    if(pos){
-        *pos = vpos;
-    }
-    return wr;
-}
-
-//------------------------------------------------------------------------------------
-int32_t FSManager::readRecordSet(int32_t recordset, void* data, uint32_t record_size, int32_t* pos){
-    if(!recordset || !data || !record_size){
-        return 0;
-    }
-    int rd = 0;
-    int32_t vpos = (pos)? (*pos) : 0;
-    // se sitúa en la posición deseada, o a continuación
-    if(pos){
-        fseek((FILE*)recordset, vpos, SEEK_SET);
-    }
-    // lee el registro
-    rd = fread(data, 1, record_size, (FILE*)recordset);
-    vpos += rd;
-    if(pos){
-        *pos = vpos;
-    }
-    return rd;
-}
-
-
-//------------------------------------------------------------------------------------
-int32_t FSManager::getRecord(const char* data_id, void* data, uint32_t record_size, int32_t* pos){
-    if(!data || !record_size){
-        return 0;
-    }
-    char * filename = (char*)Heap::memAlloc(strlen(data_id) + strlen("/fs/.dat") + 1);
-    if(!filename){
-        return -1;
-    }
-    sprintf(filename, "/fs/%s.dat", data_id);
-    FILE* fd = fopen(filename, "r");
-    int rd = 0;
-    int32_t vpos = (pos)? (*pos) : 0;
-    if(fd){
-        // se sitúa en la posición deseada
-        fseek(fd, vpos, SEEK_SET);
-        // lee el registro
-        rd = fread(data, 1, record_size, fd);
-        fclose(fd);
-    }
-    vpos += rd;
-    if(pos){
-        *pos = vpos;
-    }
-    return rd;
-}
-
-
-//------------------------------------------------------------------------------------
-int32_t FSManager::setRecord(const char* data_id, void* data, uint32_t record_size, int32_t* pos){
-    if(!data || !record_size){
-        return 0;
-    }
-    char * filename = (char*)Heap::memAlloc(strlen(data_id) + strlen("/fs/.dat") + 1);
-    if(!filename){
-        return -1;
-    }
-    sprintf(filename, "/fs/%s.dat", data_id);
-    FILE* fd = fopen(filename, "r+");
-    int wr = 0;
-    int32_t vpos = (pos)? (*pos) : 0;
-    if(fd){
-        // se sitúa en la posición deseada
-        fseek(fd, vpos, SEEK_SET);
-        // actualiza el registro
-        wr = fwrite(data, 1, record_size, fd);
-        fclose(fd);
-    }
-    vpos += wr;
-    if(pos){
-        *pos = vpos;
-    }
-    return wr;
-}
-#endif
 
 
