@@ -42,6 +42,7 @@ class FSManager : public NVSInterface{
      */
     FSManager(const char *name, PinName mosi=NC, PinName miso=NC, PinName sclk=NC, PinName csel=NC, int freq=0, bool defdbg = false);
     virtual ~FSManager(){
+    	_static_instance = NULL;
     }
   
     /** init
