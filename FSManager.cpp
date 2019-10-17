@@ -12,6 +12,7 @@
 //--- STATIC TYPES ------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
+FSManager* FSManager::_static_instance = NULL;
 
 //------------------------------------------------------------------------------------
 //--- PRIVATE TYPES ------------------------------------------------------------------
@@ -44,6 +45,7 @@ FSManager::FSManager(const char *name, PinName mosi, PinName miso, PinName sclk,
     //TODO
     #warning TODO FSManager::FSManager()
     #endif
+	_static_instance = this;
 }
 
 

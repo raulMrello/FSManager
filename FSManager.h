@@ -98,6 +98,12 @@ class FSManager : public NVSInterface{
      */   
     virtual int restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
 
+    /**
+     * Devuelve la instancia estática
+     * @return
+     */
+    static FSManager* getStaticInstance(){ return _static_instance; }
+
 protected:
 
 	/** Flag para habilitar trazas de depuración por defecto */
@@ -118,6 +124,9 @@ private:
 
 	/** Flag para indicar el estado del componente */
 	bool _ready;
+
+	/** instancia estática */
+	static FSManager* _static_instance;
 
 };
      
