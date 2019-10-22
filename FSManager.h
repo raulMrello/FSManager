@@ -19,6 +19,9 @@
 #include "mbed.h"
 #include "Heap.h"
 #include "NVSInterface.h"
+#if __MBED__==1
+#include "mdf_api_cortex.h"
+#endif
 
 
 
@@ -40,7 +43,7 @@ class FSManager : public NVSInterface{
      *  @param freq Frecuencia SPI (40MHz o 20MHz dependiendo del puerto utilizado).. Por defecto no utilizado (0)
      *  @param defdbg Flag para activar o desactivar el canal de depuración por defecto
      */
-    FSManager(const char *name, PinName mosi=NC, PinName miso=NC, PinName sclk=NC, PinName csel=NC, int freq=0, bool defdbg = false);
+    FSManager(const char *name, PinName32 mosi=NC, PinName32 miso=NC, PinName32 sclk=NC, PinName32 csel=NC, int freq=0, bool defdbg = false);
     virtual ~FSManager(){
     	_static_instance = NULL;
     }

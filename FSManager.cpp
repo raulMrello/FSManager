@@ -33,7 +33,7 @@ static const char* _MODULE_ = "[FS]............";
 
 
 //------------------------------------------------------------------------------------
-FSManager::FSManager(const char *name, PinName mosi, PinName miso, PinName sclk, PinName csel, int freq, bool defdbg) : NVSInterface(name) {
+FSManager::FSManager(const char *name, PinName32 mosi, PinName32 miso, PinName32 sclk, PinName32 csel, int freq, bool defdbg) : NVSInterface(name) {
     #if ESP_PLATFORM == 1
 	_ready = false;
 	_defdbg = defdbg;
