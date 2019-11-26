@@ -30,33 +30,39 @@ class FATInterface{
 //    	bool mounted;
 //    };
 
-    FATInterface(const char *name);
-
+    FATInterface(const char *partition_label, const char *path, int num_files_max);
     virtual ~FATInterface();
-    bool ready();
-    const char* getName();
-    int mount(const char *partition_label, const char *path, int num_files_max);
+
+    static FATInterface* getStaticInstance(){ return _static_instance; }
+    bool isReady(){return _ready;};
+    //const char* getName(){return _name;};
+    //bool isMounted(){return _mounted;};
+
+    int mount();
     int umount();
     FILE * open(const char *filename,const char *opentype);
     int close(FILE *stream);
     size_t write(const void *data,size_t size,size_t count,FILE*stream);
     size_t read(void *data,size_t size, size_t count,FILE *stream);
 
+    char * Get_Fat_path(){return _path;};
+
   protected:
 
-    const char* _name;          /// Nombre del sistema de ficheros
-    int _error;                 /// Último error registrado
+    //const char* _name;          /* Nombre del sistema de ficheros */
+    int _error;                 /* Último error registrado */
     bool _ready;
 
     bool _defdbg;
-    Mutex _mtx;/** Mutex de acceso al sistema FAT */
-    wl_handle_t s_wl_handle;
+    Mutex _mtx;					/* Mutex de acceso al sistema FAT */
+    wl_handle_t s_wl_handle;	/* Weat levelling handle */
 
     char _path[MAX_PATH_NAME_LENGTH];
 	char _label[MAX_PATH_NAME_LENGTH];
-	bool _mounted;
+	int _num_files_max;
+	//bool _mounted;
 
-	static FATInterface* _static_instance = NULL;
+	static FATInterface* _static_instance;
 
 
 };

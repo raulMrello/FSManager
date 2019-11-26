@@ -9,64 +9,76 @@
  */
 #include "FATInterface.h"
 
+/** instancia estática */
+FATInterface* FATInterface::_static_instance = NULL;
+
 static const char* _MODULE_ = "[FAT]............";
 #define _EXPR_	(_defdbg && !IS_ISR())
 
-/** instancia estática */
-//FATInterface* FATInterface::_static_instance = NULL;
+
 
 /** Constructor
      *  Crea el gestor del sistema FAT asociando un nombre
      *  @param name Nombre del sistema de ficheros
      */
-FATInterface::FATInterface(const char *name) : _name(name), _error(0) {
+FATInterface::FATInterface(const char *partition_label, const char *path, int num_files_max) :  _error(0) {
 	s_wl_handle= WL_INVALID_HANDLE;
 	_ready = false;
-	_mounted = false;
+	//_mounted = false;
+
+	//memcpy(_label,partition_label,strlen(partition_label));
+	sprintf(_label,"%s",partition_label);
+	sprintf(_path,"/%s",path);
+	//memcpy(_path,path,strlen(path));
+	_num_files_max = num_files_max;
 
 	_defdbg = true;
+	if(mount()!= ESP_OK)
+		return;
+	_ready = true;
 	_static_instance = this;
+
 }
 FATInterface::~FATInterface(){
-	//_static_instance = NULL;
+	_static_instance = NULL;
 }
 
-/** ready
- *  Chequea si el sistema de ficheros está listo
- *  @return True (si montado) o False
- */
-bool FATInterface::ready() {return _ready;};
+///** ready
+// *  Chequea si el sistema de ficheros está listo
+// *  @return True (si montado) o False
+// */
+//bool FATInterface::ready() {return _ready;};
 
-/** getName
- *  Obtiene el nombre del sistema de ficheros
- *  @return _name Nombre asignado
- */
-const char* FATInterface::getName() { return _name; }
+///** getName
+// *  Obtiene el nombre del sistema de ficheros
+// *  @return _name Nombre asignado
+// */
+//const char* FATInterface::getName() { return _name; }
 
-
+//static FATInterface* FATInterface::getStaticInstance(){
+//	return _static_instance;
+//}
 /**
  * @brief  		Monta la particion fat , indicada por partition_label en el path indicado en path
  * @param[in]	partition_label: label de la particion (partition table)
  * @param[in]	path: path reaiz que se usará para la particion
  * @return True: Handle abierto, False: Handle no abierto (error)
  */
-int FATInterface::mount(const char *partition_label, const char *path, int num_files_max) {
+int FATInterface::mount() {
 	esp_err_t _err;
 	esp_vfs_fat_mount_config_t mount_config;
 
-	memcpy(_path,path,strlen(path));
-	memcpy(_label,partition_label,strlen(partition_label));
-
-	mount_config.max_files = num_files_max;
+	mount_config.max_files = _num_files_max;
 	mount_config.format_if_mount_failed = true;
 	mount_config.allocation_unit_size = CONFIG_WL_SECTOR_SIZE;
 
 	_err = esp_vfs_fat_spiflash_mount(_path, _label, &mount_config, &s_wl_handle);
 	if(_err != ESP_OK){
-		DEBUG_TRACE_E(_EXPR_, _MODULE_, "OTHER ERROR %s",esp_err_to_name(_err));
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "Error montando Fatfs %s",esp_err_to_name(_err));
 		return _err;
 	}
 	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Fatfs CREADO CORRECTAMENTE");
+	//_mounted = true;
 	return _err;
 }
 
@@ -83,6 +95,7 @@ int FATInterface::umount() {
 		return _err;
 	}
 	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Fatfs Desmontado correctamente");
+	//_mounted = false;
 	return _err;
 }
 /**
