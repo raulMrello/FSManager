@@ -24,7 +24,7 @@ static const char* _MODULE_ = "[FAT]............";
 FATInterface::FATInterface(const char *partition_label, const char *path, int num_files_max) :  _error(0) {
 	s_wl_handle= WL_INVALID_HANDLE;
 	_ready = false;
-	//_mounted = false;
+//	_mounted = false;
 
 	//memcpy(_label,partition_label,strlen(partition_label));
 	sprintf(_label,"%s",partition_label);
@@ -35,12 +35,12 @@ FATInterface::FATInterface(const char *partition_label, const char *path, int nu
 	_defdbg = true;
 	if(mount()!= ESP_OK)
 		return;
-	_ready = true;
 	_static_instance = this;
-
 }
 FATInterface::~FATInterface(){
+	umount();
 	_static_instance = NULL;
+	_ready = false;
 }
 
 ///** ready
@@ -78,7 +78,7 @@ int FATInterface::mount() {
 		return _err;
 	}
 	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Fatfs CREADO CORRECTAMENTE");
-	//_mounted = true;
+	_ready = true;
 	return _err;
 }
 
@@ -95,7 +95,7 @@ int FATInterface::umount() {
 		return _err;
 	}
 	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Fatfs Desmontado correctamente");
-	//_mounted = false;
+//	_mounted = false;
 	return _err;
 }
 /**
