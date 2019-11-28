@@ -19,6 +19,9 @@
 #include "mbed.h"
 #include "Heap.h"
 #include "NVSInterface.h"
+#if __MBED__==1
+#include "mdf_api_cortex.h"
+#endif
 
 
 
@@ -40,8 +43,9 @@ class FSManager : public NVSInterface{
      *  @param freq Frecuencia SPI (40MHz o 20MHz dependiendo del puerto utilizado).. Por defecto no utilizado (0)
      *  @param defdbg Flag para activar o desactivar el canal de depuración por defecto
      */
-    FSManager(const char *name, PinName mosi=NC, PinName miso=NC, PinName sclk=NC, PinName csel=NC, int freq=0, bool defdbg = false);
+    FSManager(const char *name, PinName32 mosi=NC, PinName32 miso=NC, PinName32 sclk=NC, PinName32 csel=NC, int freq=0, bool defdbg = false);
     virtual ~FSManager(){
+    	_static_instance = NULL;
     }
   
     /** init
@@ -98,6 +102,12 @@ class FSManager : public NVSInterface{
      */   
     virtual int restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
 
+    /**
+     * Devuelve la instancia estática
+     * @return
+     */
+    static FSManager* getStaticInstance(){ return _static_instance; }
+
 protected:
 
 	/** Flag para habilitar trazas de depuración por defecto */
@@ -118,6 +128,9 @@ private:
 
 	/** Flag para indicar el estado del componente */
 	bool _ready;
+
+	/** instancia estática */
+	static FSManager* _static_instance;
 
 };
      
