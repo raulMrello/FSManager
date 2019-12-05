@@ -46,6 +46,7 @@ class FATInterface{
     size_t read(void *data,size_t size, size_t count,FILE *stream);
 
     char * Get_Fat_path(){return _path;};
+    char * Get_Fat_label(){return _label;};
 
   protected:
 

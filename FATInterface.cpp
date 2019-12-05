@@ -29,10 +29,12 @@ FATInterface::FATInterface(const char *partition_label, const char *path, int nu
 	//memcpy(_label,partition_label,strlen(partition_label));
 	sprintf(_label,"%s",partition_label);
 	sprintf(_path,"/%s",path);
+	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Path: %s Label: %s",_path,_label);
 	//memcpy(_path,path,strlen(path));
 	_num_files_max = num_files_max;
 
 	_defdbg = true;
+
 	if(mount()!= ESP_OK)
 		return;
 	_static_instance = this;
@@ -69,12 +71,12 @@ int FATInterface::mount() {
 	esp_vfs_fat_mount_config_t mount_config;
 
 	mount_config.max_files = _num_files_max;
-	mount_config.format_if_mount_failed = true;
+	mount_config.format_if_mount_failed = false;//true;
 	mount_config.allocation_unit_size = CONFIG_WL_SECTOR_SIZE;
 
 	_err = esp_vfs_fat_spiflash_mount(_path, _label, &mount_config, &s_wl_handle);
 	if(_err != ESP_OK){
-		DEBUG_TRACE_E(_EXPR_, _MODULE_, "Error montando Fatfs %s",esp_err_to_name(_err));
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "Error montando Fatfs path:%s , label:%s  %s",_path,_label,esp_err_to_name(_err));
 		return _err;
 	}
 	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Fatfs CREADO CORRECTAMENTE");
