@@ -111,9 +111,15 @@ int FATInterface::umount() {
  */
 FILE * FATInterface::open(const char *filename,const char *opentype){
 	FILE *fp = NULL;
+	char* fullpath = new char[strlen(filename) + strlen(_path) + 2]();
+	MBED_ASSERT(fullpath);
+	sprintf(fullpath, "%s/%s", _path, filename);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Abriendo archivo %s", fullpath);
 	_mtx.lock();
-	fp = fopen(filename, opentype);
+	fp = fopen(fullpath, opentype);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Archivo fp=%x", (uint32_t)fp);
 	_mtx.unlock();
+	delete(fullpath);
 	return fp;
 
 }
