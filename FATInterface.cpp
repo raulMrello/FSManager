@@ -19,9 +19,12 @@ static const char* _MODULE_ = "[FAT]............";
 
 /** Constructor
      *  Crea el gestor del sistema FAT asociando un nombre
-     *  @param name Nombre del sistema de ficheros
+     *  @param partition_label Nombre del sistema de ficheros en partition_table
+     *  @param path: path para utilizar fat
+     *  @param num_files_max, numero maximo de archivos en la fat
+     *  @param format: true o false, formatear la particion si error al montar
      */
-FATInterface::FATInterface(const char *partition_label, const char *path, int num_files_max) :  _error(0) {
+FATInterface::FATInterface(const char *partition_label, const char *path, int num_files_max,bool format) :  _error(0) {
 	s_wl_handle= WL_INVALID_HANDLE;
 	_ready = false;
 //	_mounted = false;
@@ -35,7 +38,7 @@ FATInterface::FATInterface(const char *partition_label, const char *path, int nu
 
 	_defdbg = true;
 
-	if(mount()!= ESP_OK)
+	if(mount(format)!= ESP_OK)
 		return;
 	_static_instance = this;
 }
@@ -66,12 +69,12 @@ FATInterface::~FATInterface(){
  * @param[in]	path: path reaiz que se usará para la particion
  * @return True: Handle abierto, False: Handle no abierto (error)
  */
-int FATInterface::mount() {
+int FATInterface::mount(bool format) {
 	esp_err_t _err;
 	esp_vfs_fat_mount_config_t mount_config;
 
 	mount_config.max_files = _num_files_max;
-	mount_config.format_if_mount_failed = false;//true;
+	mount_config.format_if_mount_failed = format;
 	mount_config.allocation_unit_size = CONFIG_WL_SECTOR_SIZE;
 
 	_err = esp_vfs_fat_spiflash_mount(_path, _label, &mount_config, &s_wl_handle);

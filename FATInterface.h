@@ -30,7 +30,7 @@ class FATInterface{
 //    	bool mounted;
 //    };
 
-    FATInterface(const char *partition_label, const char *path, int num_files_max);
+    FATInterface(const char *partition_label, const char *path, int num_files_max,bool format);
     virtual ~FATInterface();
 
     static FATInterface* getStaticInstance(){ return _static_instance; }
@@ -38,7 +38,7 @@ class FATInterface{
     //const char* getName(){return _name;};
     //bool isMounted(){return _mounted;};
 
-    int mount();
+    int mount(bool format);
     int umount();
     FILE * open(const char *filename,const char *opentype);
     int close(FILE *stream);
