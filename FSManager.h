@@ -19,6 +19,9 @@
 #include "mbed.h"
 #include "Heap.h"
 #include "NVSInterface.h"
+#if ESP_PLATFORM == 1
+#include "FATInterface.h"
+#endif
 #if __MBED__==1
 #include "mdf_api_cortex.h"
 #endif
