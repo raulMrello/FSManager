@@ -165,3 +165,27 @@ size_t FATInterface::read(void *data,size_t size, size_t count,FILE *stream){
 	_mtx.unlock();
 	return s;
 }
+
+//-----------------------------------------------------------------------------------------
+int FATInterface::listFolder(const char* folder, std::list<const char*> &file_list){
+	int count = -1;
+	char* txt = new char[strlen(_path)+1+strlen(folder)+1]();
+	MBED_ASSERT(txt);
+	sprintf(txt, "%s/%s", _path, folder);
+	DIR* dir = opendir(txt);
+	if(dir){
+		count = 0;
+		struct dirent* de = NULL;
+		do{
+			de = readdir(dir);
+			if(de) {
+				char* name = new char[strlen(de->d_name)+1]();
+				MBED_ASSERT(name);
+				file_list.push_back(name);
+			}
+		}while(de);
+		closedir(dir);
+	}
+	delete(txt);
+	return count;
+}
