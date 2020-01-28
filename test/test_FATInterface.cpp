@@ -119,63 +119,64 @@ TEST_CASE("LISTA ARCHIVOS EN DIR_______", "[FATInterface]") {
 //	TEST_ASSERT_EQUAL(mkdir("/logs/stm32", 0755), 0);
 //	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo stm32");
 
+	mkdir("logs/stm32", (S_IRWXU|S_IRWXG));
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.001.001.bin");
-	f = fat->open("stm32/001.001.001.bin","r+");
+	f = fat->open("stm32/001.001.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 000.001.001.bin");
-	f = fat->open("stm32/000.001.001.bin","r+");
+	f = fat->open("stm32/000.001.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.000.001.bin");
-	f = fat->open("stm32/001.000.001.bin","r+");
+	f = fat->open("stm32/001.000.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.001.000.bin");
-	f = fat->open("stm32/001.001.000.bin","r+");
+	f = fat->open("stm32/001.001.000.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 000.000.000.bin");
-	f = fat->open("stm32/000.000.000.bin","r+");
+	f = fat->open("stm32/000.000.000.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 002.000.000.bin");
-	f = fat->open("stm32/002.000.000.bin","r+");
+	f = fat->open("stm32/002.000.000.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.002.001.bin");
-	f = fat->open("stm32/001.002.001.bin","r+");
+	f = fat->open("stm32/001.002.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.001.002.bin");
-	f = fat->open("stm32/001.001.002.bin","r+");
+	f = fat->open("stm32/001.001.002.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001x001.001.bin");
-	f = fat->open("stm32/001x001.001.bin","r+");
+	f = fat->open("stm32/001x001.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.001.bin");
-	f = fat->open("stm32/001.001.bin","r+");
+	f = fat->open("stm32/001.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 001.001.001.001.bin");
-	f = fat->open("stm32/001.001.001.001.bin","r+");
+	f = fat->open("stm32/001.001.001.001.bin","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Creo archivo 003.001.001.txt");
-	f = fat->open("stm32/003.001.001.txt","r+");
+	f = fat->open("stm32/003.001.001.txt","a+");
 	TEST_ASSERT_NOT_NULL(f);
 	fat->close(f);
 
