@@ -15,6 +15,8 @@
 #if ESP_PLATFORM == 1
 #include "esp_vfs_fat.h"
 #endif
+#include <list>
+#include <dirent.h>
 
 #define DEFAULT_FATInterface_Partition	(const char*)"fat_stm32"
 #define MAX_PATH_NAME_LENGTH		50		//Longitud maxima para el path raiz de la particion FAT y partition_label del partition_table
@@ -44,6 +46,14 @@ class FATInterface{
     int close(FILE *stream);
     size_t write(const void *data,size_t size,size_t count,FILE*stream);
     size_t read(void *data,size_t size, size_t count,FILE *stream);
+
+    /**
+     * Lista los archivos de un directorio y los devuelve como una lista de nombres
+     * @param folder Directorio en el que buscar
+     * @param file_list Lista a rellenar con los nombres de archivo encontrados
+     * @return Número de archivos encontrados
+     */
+    int listFolder(const char* folder, std::list<const char*> &file_list);
 
     char * Get_Fat_path(){return _path;};
     char * Get_Fat_label(){return _label;};
