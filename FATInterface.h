@@ -40,6 +40,7 @@ class FATInterface{
     //const char* getName(){return _name;};
     //bool isMounted(){return _mounted;};
 
+    void setLoggingLevel(esp_log_level_t level);
     int mount(bool format);
     int umount();
     FILE * open(const char *filename,const char *opentype);
@@ -53,7 +54,8 @@ class FATInterface{
      * @param file_list Lista a rellenar con los nombres de archivo encontrados
      * @return Número de archivos encontrados
      */
-    int listFolder(const char* folder, std::list<const char*> &file_list);
+    //int listFolder(const char* folder, std::list<const char*> &file_list);
+    int listFolder(const char* folder);//, std::list<const char*> &file_list);
 
     char * Get_Fat_path(){return _path;};
     char * Get_Fat_label(){return _label;};

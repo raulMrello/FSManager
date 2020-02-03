@@ -38,6 +38,8 @@ FATInterface::FATInterface(const char *partition_label, const char *path, int nu
 
 	_defdbg = true;
 
+
+	setLoggingLevel(ESP_LOG_INFO);
 	if(mount(format)!= ESP_OK)
 		return;
 	_static_instance = this;
@@ -60,6 +62,10 @@ FATInterface::~FATInterface(){
 // */
 //const char* FATInterface::getName() { return _name; }
 
+
+void FATInterface::setLoggingLevel(esp_log_level_t level){
+	esp_log_level_set(_MODULE_, level);
+}
 //static FATInterface* FATInterface::getStaticInstance(){
 //	return _static_instance;
 //}
@@ -167,23 +173,33 @@ size_t FATInterface::read(void *data,size_t size, size_t count,FILE *stream){
 }
 
 //-----------------------------------------------------------------------------------------
-int FATInterface::listFolder(const char* folder, std::list<const char*> &file_list){
+//int FATInterface::listFolder(const char* folder, std::list<const char*> &file_list){
+int FATInterface::listFolder(const char* folder){//, std::list<const char*> &file_list){
 	int count = -1;
 	char* txt = new char[strlen(_path)+1+strlen(folder)+1]();
 	MBED_ASSERT(txt);
-	sprintf(txt, "%s/%s/", _path, folder);
+	sprintf(txt, "%s/%s", _path, folder);
 	DIR* dir = opendir(txt);
 	if(dir){
 		count = 0;
 		struct dirent* de = NULL;
 		while((de = readdir(dir)) != NULL){
-			count++;
-			char* name = new char[strlen(de->d_name)+1]();
-			MBED_ASSERT(name);
-			file_list.push_back(name);
+			if(de->d_type == DT_REG){
+				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Nombre %s",de->d_name);
+				count++;
+				char* name = new char[strlen(de->d_name)+1]();
+				MBED_ASSERT(name);
+				memcpy(name,(char *)de->d_name,strlen(de->d_name));
+				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Archivo %s",name);
+				//file_list.push_back(name);
+			}
 		}
 		closedir(dir);
 	}
+	else{
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "dir = null");
+	}
+	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Salimos");
 	delete(txt);
 	return count;
 }
