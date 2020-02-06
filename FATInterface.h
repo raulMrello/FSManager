@@ -45,6 +45,7 @@ class FATInterface{
     int umount();
     FILE * open(const char *filename,const char *opentype);
     int close(FILE *stream);
+    int _unlink(const char *filename);
     size_t write(const void *data,size_t size,size_t count,FILE*stream);
     size_t read(void *data,size_t size, size_t count,FILE *stream);
 
@@ -54,8 +55,7 @@ class FATInterface{
      * @param file_list Lista a rellenar con los nombres de archivo encontrados
      * @return Número de archivos encontrados
      */
-    //int listFolder(const char* folder, std::list<const char*> &file_list);
-    int listFolder(const char* folder);//, std::list<const char*> &file_list);
+    int listFolder(const char* folder, std::list<const char*> *file_list);
 
     char * Get_Fat_path(){return _path;};
     char * Get_Fat_label(){return _label;};

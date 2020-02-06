@@ -9,7 +9,7 @@
  */
 #include "FATInterface.h"
 
-/** instancia estática */
+/** instancia estï¿½tica */
 FATInterface* FATInterface::_static_instance = NULL;
 
 static const char* _MODULE_ = "[FAT]............";
@@ -51,7 +51,7 @@ FATInterface::~FATInterface(){
 }
 
 ///** ready
-// *  Chequea si el sistema de ficheros está listo
+// *  Chequea si el sistema de ficheros estï¿½ listo
 // *  @return True (si montado) o False
 // */
 //bool FATInterface::ready() {return _ready;};
@@ -72,7 +72,7 @@ void FATInterface::setLoggingLevel(esp_log_level_t level){
 /**
  * @brief  		Monta la particion fat , indicada por partition_label en el path indicado en path
  * @param[in]	partition_label: label de la particion (partition table)
- * @param[in]	path: path reaiz que se usará para la particion
+ * @param[in]	path: path reaiz que se usarï¿½ para la particion
  * @return True: Handle abierto, False: Handle no abierto (error)
  */
 int FATInterface::mount(bool format) {
@@ -141,10 +141,29 @@ int FATInterface::close(FILE *stream){
 	_mtx.unlock();
 	return res;
 }
+
+/**
+ * @brief funcion unlink con proteccion mutex
+ * @param[in]	filename: nombre del fichero con su directorio.
+ * @return 		int resultad.
+ */
+int FATInterface::_unlink(const char *filename){
+	int result = 0;
+	char* fullpath = new char[strlen(filename) + strlen(_path) + 2]();
+	MBED_ASSERT(fullpath);
+	sprintf(fullpath, "%s/%s", _path, filename);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Eliminando archivo %s", fullpath);
+	_mtx.lock();
+	result = unlink(fullpath);
+	_mtx.unlock();
+	delete(fullpath);
+	return result;
+
+}
 /**
  * @brief		funcion fwrite con proteccion mutex
  * @param[in]	data: puntero con los datos a escribir
- * @param[in]	size: tamaño de cada elemento a escribir
+ * @param[in]	size: tamaï¿½o de cada elemento a escribir
  * @param[in]	count: numero de elementos a escribir
  * @param[in]	stream: puntero FILE del archivo a escribir
  * @return 		size_t: bytes escritos
@@ -159,7 +178,7 @@ size_t FATInterface::write(const void *data,size_t size,size_t count,FILE*stream
 /**
  * @brief		funcion fread con proteccion mutex
  * @param[in]	data: puntero del buffer a rellenar con los datos leidos
- * @param[in]	size: tamaño de cada elemento a leer
+ * @param[in]	size: tamaï¿½o de cada elemento a leer
  * @param[in]	count: numero de elementos a leer
  * @param[in]	stream: puntero FILE del archivo a leer
  * @return 		size_t: bytes leidos
@@ -173,8 +192,9 @@ size_t FATInterface::read(void *data,size_t size, size_t count,FILE *stream){
 }
 
 //-----------------------------------------------------------------------------------------
-//int FATInterface::listFolder(const char* folder, std::list<const char*> &file_list){
-int FATInterface::listFolder(const char* folder){//, std::list<const char*> &file_list){
+//int FATInterface::listFolder(const char* folder){//, std::list<const char*> &file_list){
+int FATInterface::listFolder(const char* folder, std::list<const char*> *file_list){
+
 	int count = -1;
 	char* txt = new char[strlen(_path)+1+strlen(folder)+1]();
 	MBED_ASSERT(txt);
@@ -191,7 +211,7 @@ int FATInterface::listFolder(const char* folder){//, std::list<const char*> &fil
 				MBED_ASSERT(name);
 				memcpy(name,(char *)de->d_name,strlen(de->d_name));
 				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Archivo %s",name);
-				//file_list.push_back(name);
+				file_list->push_back(name);
 			}
 		}
 		closedir(dir);
