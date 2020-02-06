@@ -9,7 +9,7 @@
  */
 #include "FATInterface.h"
 
-/** instancia estática */
+/** instancia estï¿½tica */
 FATInterface* FATInterface::_static_instance = NULL;
 
 static const char* _MODULE_ = "[FAT]............";
@@ -38,6 +38,8 @@ FATInterface::FATInterface(const char *partition_label, const char *path, int nu
 
 	_defdbg = true;
 
+
+	setLoggingLevel(ESP_LOG_INFO);
 	if(mount(format)!= ESP_OK)
 		return;
 	_static_instance = this;
@@ -49,7 +51,7 @@ FATInterface::~FATInterface(){
 }
 
 ///** ready
-// *  Chequea si el sistema de ficheros está listo
+// *  Chequea si el sistema de ficheros estï¿½ listo
 // *  @return True (si montado) o False
 // */
 //bool FATInterface::ready() {return _ready;};
@@ -60,13 +62,17 @@ FATInterface::~FATInterface(){
 // */
 //const char* FATInterface::getName() { return _name; }
 
+
+void FATInterface::setLoggingLevel(esp_log_level_t level){
+	esp_log_level_set(_MODULE_, level);
+}
 //static FATInterface* FATInterface::getStaticInstance(){
 //	return _static_instance;
 //}
 /**
  * @brief  		Monta la particion fat , indicada por partition_label en el path indicado en path
  * @param[in]	partition_label: label de la particion (partition table)
- * @param[in]	path: path reaiz que se usará para la particion
+ * @param[in]	path: path reaiz que se usarï¿½ para la particion
  * @return True: Handle abierto, False: Handle no abierto (error)
  */
 int FATInterface::mount(bool format) {
@@ -135,10 +141,29 @@ int FATInterface::close(FILE *stream){
 	_mtx.unlock();
 	return res;
 }
+
+/**
+ * @brief funcion unlink con proteccion mutex
+ * @param[in]	filename: nombre del fichero con su directorio.
+ * @return 		int resultad.
+ */
+int FATInterface::_unlink(const char *filename){
+	int result = 0;
+	char* fullpath = new char[strlen(filename) + strlen(_path) + 2]();
+	MBED_ASSERT(fullpath);
+	sprintf(fullpath, "%s/%s", _path, filename);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Eliminando archivo %s", fullpath);
+	_mtx.lock();
+	result = unlink(fullpath);
+	_mtx.unlock();
+	delete(fullpath);
+	return result;
+
+}
 /**
  * @brief		funcion fwrite con proteccion mutex
  * @param[in]	data: puntero con los datos a escribir
- * @param[in]	size: tamaño de cada elemento a escribir
+ * @param[in]	size: tamaï¿½o de cada elemento a escribir
  * @param[in]	count: numero de elementos a escribir
  * @param[in]	stream: puntero FILE del archivo a escribir
  * @return 		size_t: bytes escritos
@@ -153,7 +178,7 @@ size_t FATInterface::write(const void *data,size_t size,size_t count,FILE*stream
 /**
  * @brief		funcion fread con proteccion mutex
  * @param[in]	data: puntero del buffer a rellenar con los datos leidos
- * @param[in]	size: tamaño de cada elemento a leer
+ * @param[in]	size: tamaï¿½o de cada elemento a leer
  * @param[in]	count: numero de elementos a leer
  * @param[in]	stream: puntero FILE del archivo a leer
  * @return 		size_t: bytes leidos
@@ -167,23 +192,34 @@ size_t FATInterface::read(void *data,size_t size, size_t count,FILE *stream){
 }
 
 //-----------------------------------------------------------------------------------------
-int FATInterface::listFolder(const char* folder, std::list<const char*> &file_list){
+//int FATInterface::listFolder(const char* folder){//, std::list<const char*> &file_list){
+int FATInterface::listFolder(const char* folder, std::list<const char*> *file_list){
+
 	int count = -1;
 	char* txt = new char[strlen(_path)+1+strlen(folder)+1]();
 	MBED_ASSERT(txt);
-	sprintf(txt, "%s/%s/", _path, folder);
+	sprintf(txt, "%s/%s", _path, folder);
 	DIR* dir = opendir(txt);
 	if(dir){
 		count = 0;
 		struct dirent* de = NULL;
 		while((de = readdir(dir)) != NULL){
-			count++;
-			char* name = new char[strlen(de->d_name)+1]();
-			MBED_ASSERT(name);
-			file_list.push_back(name);
+			if(de->d_type == DT_REG){
+				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Nombre %s",de->d_name);
+				count++;
+				char* name = new char[strlen(de->d_name)+1]();
+				MBED_ASSERT(name);
+				memcpy(name,(char *)de->d_name,strlen(de->d_name));
+				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Archivo %s",name);
+				file_list->push_back(name);
+			}
 		}
 		closedir(dir);
 	}
+	else{
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "dir = null");
+	}
+	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Salimos");
 	delete(txt);
 	return count;
 }
