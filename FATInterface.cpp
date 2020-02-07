@@ -205,12 +205,11 @@ int FATInterface::listFolder(const char* folder, std::list<const char*> *file_li
 		struct dirent* de = NULL;
 		while((de = readdir(dir)) != NULL){
 			if(de->d_type == DT_REG){
-				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Nombre %s",de->d_name);
 				count++;
 				char* name = new char[strlen(de->d_name)+1]();
 				MBED_ASSERT(name);
 				memcpy(name,(char *)de->d_name,strlen(de->d_name));
-				DEBUG_TRACE_I(_EXPR_, _MODULE_, "Archivo %s",name);
+				DEBUG_TRACE_D(_EXPR_, _MODULE_, "Archivo %s",name);
 				file_list->push_back(name);
 			}
 		}
@@ -219,7 +218,6 @@ int FATInterface::listFolder(const char* folder, std::list<const char*> *file_li
 	else{
 		DEBUG_TRACE_E(_EXPR_, _MODULE_, "dir = null");
 	}
-	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Salimos");
 	delete(txt);
 	return count;
 }
