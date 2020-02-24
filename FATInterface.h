@@ -57,6 +57,13 @@ class FATInterface{
      */
     int listFolder(const char* folder, std::list<const char*> *file_list);
 
+    /**
+     * Crea un directorio en disco
+     * @param folder Directorio a crear
+     * @return 0=OK
+     */
+    int createFolder(const char* folder);
+
     char * Get_Fat_path(){return _path;};
     char * Get_Fat_label(){return _label;};
 
