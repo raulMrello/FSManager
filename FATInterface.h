@@ -64,6 +64,29 @@ class FATInterface{
      */
     int createFolder(const char* folder);
 
+    /**
+     * Copia un fichero en otro
+     * @param src Origen
+     * @param dest Destino
+     * @param erase_src Flag para borrar o no el archivo origen
+     * @return 0=OK
+     */
+    int copyFile(const char* src, const char* dest, bool erase_src);
+
+    /**
+     * Elimina el archivo
+     * @param file Archivo a eliminar
+     * @return 0=OK
+     */
+    int eraseFile(const char* file);
+
+    /**
+     * Chequea si el archivo existe
+     * @param file Archivo
+     * @return true, false
+     */
+    bool fileExists(const char* file);
+
     char * Get_Fat_path(){return _path;};
     char * Get_Fat_label(){return _label;};
 
