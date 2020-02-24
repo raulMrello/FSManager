@@ -8,6 +8,7 @@
  *
  */
 #include "FATInterface.h"
+#include <fstream>
 
 /** instancia est�tica */
 FATInterface* FATInterface::_static_instance = NULL;
@@ -234,4 +235,46 @@ int FATInterface::createFolder(const char* folder){
 	}
 	delete(txt);
 	return res;
+}
+
+//-----------------------------------------------------------------------------------------
+int FATInterface::copyFile(const char* src_file, const char* dest_file, bool erase_src){
+	if(!fileExists(src_file)){
+		return -1;
+	}
+	char* stxt = new char[strlen(_path)+1+strlen(src_file)+1]();
+	MBED_ASSERT(stxt);
+	sprintf(stxt, "%s/%s", _path, src_file);
+	char* dtxt = new char[strlen(_path)+1+strlen(dest_file)+1]();
+	MBED_ASSERT(dtxt);
+	sprintf(dtxt, "%s/%s", _path, dest_file);
+
+	std::ifstream srce( stxt, std::ios::binary );
+	std::ofstream dest( dtxt, std::ios::binary );
+	dest << srce.rdbuf();
+	delete(dtxt);
+	delete(stxt);
+	if(!erase_src)
+		return 0;
+	return eraseFile(src_file);
+}
+
+//-----------------------------------------------------------------------------------------
+int FATInterface::eraseFile(const char* f){
+	char* stxt = new char[strlen(_path)+1+strlen(f)+1]();
+	MBED_ASSERT(stxt);
+	sprintf(stxt, "%s/%s", _path, f);
+	int res = remove(stxt);
+	delete(stxt);
+	return res;
+}
+
+//-----------------------------------------------------------------------------------------
+bool FATInterface::fileExists(const char* f){
+	FILE* ptr = open(f, "r");
+	if(ptr){
+		close(ptr);
+		return true;
+	}
+	return false;
 }
