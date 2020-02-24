@@ -221,3 +221,17 @@ int FATInterface::listFolder(const char* folder, std::list<const char*> *file_li
 	delete(txt);
 	return count;
 }
+
+//-----------------------------------------------------------------------------------------
+int FATInterface::createFolder(const char* folder){
+	int res=0;
+	char* txt = new char[strlen(_path)+1+strlen(folder)+1]();
+	MBED_ASSERT(txt);
+	sprintf(txt, "%s/%s", _path, folder);
+	DIR* dir = opendir(txt);
+	if(!dir){
+		int res = mkdir(txt, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH);
+	}
+	delete(txt);
+	return res;
+}
