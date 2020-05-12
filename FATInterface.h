@@ -48,6 +48,7 @@ class FATInterface{
     int _unlink(const char *filename);
     size_t write(const void *data,size_t size,size_t count,FILE*stream);
     size_t read(void *data,size_t size, size_t count,FILE *stream);
+    size_t readLine(char* result, size_t max_len, FILE *stream);
 
     /**
      * Lista los archivos de un directorio y los devuelve como una lista de nombres
