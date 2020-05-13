@@ -209,7 +209,7 @@ size_t FATInterface::readLine(char* result, size_t max_len, FILE *stream){
 		}
 		s+=count;
 	}while(result[s-1] != '\n' && s < max_len);
-
+	result[s]=0;
 	_mtx.unlock();
 	return s;
 }
