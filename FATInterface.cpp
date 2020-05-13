@@ -191,6 +191,29 @@ size_t FATInterface::read(void *data,size_t size, size_t count,FILE *stream){
 	_mtx.unlock();
 	return s;
 }
+/**
+ * @brief		funcion fread con proteccion mutex
+ * @param[in]	data: puntero del buffer a rellenar con los datos leidos
+ * @param[in]	size: tama�o de cada elemento a leer
+ * @param[in]	count: numero de elementos a leer
+ * @param[in]	stream: puntero FILE del archivo a leer
+ * @return 		size_t: bytes leidos
+ */
+size_t FATInterface::readLine(char* result, size_t max_len, FILE *stream){
+	size_t s=0;
+	_mtx.lock();
+	do{
+		int count = fread(&result[s],sizeof(char),1,stream);
+		if(count==0){
+			break;
+		}
+		s+=count;
+	}while(result[s-1] != '\n' && s < max_len);
+	result[s]=0;
+	_mtx.unlock();
+	return s;
+}
+
 
 //-----------------------------------------------------------------------------------------
 //int FATInterface::listFolder(const char* folder){//, std::list<const char*> &file_list){
