@@ -76,6 +76,14 @@ class FATInterface{
     int copyFile(const char* src, const char* dest, bool erase_src);
 
     /**
+	* Renombra un fichero
+	* @param src Origen
+	* @param dest Destino
+	* @return 0=OK
+	*/
+    int renameFile(const char* src_file, const char* dest_file);
+
+    /**
      * Elimina el archivo
      * @param file Archivo a eliminar
      * @return 0=OK

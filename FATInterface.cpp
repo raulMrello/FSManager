@@ -301,6 +301,27 @@ int FATInterface::copyFile(const char* src_file, const char* dest_file, bool era
 	return eraseFile(src_file);
 }
 
+
+//-----------------------------------------------------------------------------------------
+int FATInterface::renameFile(const char* src_file, const char* dest_file){
+	if(!fileExists(src_file)){
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "Archivo src no existe %s",src_file);
+		return -1;
+	}
+	if(fileExists(dest_file)){
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "Archivo dst no existe %s",dest_file);
+		return -1;
+	}
+	char* stxt = new char[strlen(_path)+1+strlen(src_file)+1]();
+	MBED_ASSERT(stxt);
+	sprintf(stxt, "%s/%s", _path, src_file);
+	char* dtxt = new char[strlen(_path)+1+strlen(dest_file)+1]();
+	MBED_ASSERT(dtxt);
+	sprintf(dtxt, "%s/%s", _path, dest_file);
+
+	return rename(stxt, dtxt);
+}
+
 //-----------------------------------------------------------------------------------------
 int FATInterface::eraseFile(const char* f){
 	char* stxt = new char[strlen(_path)+1+strlen(f)+1]();
