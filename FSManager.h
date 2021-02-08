@@ -105,6 +105,21 @@ class FSManager : public NVSInterface{
      */   
     virtual int restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
 
+
+    /** checkKey
+     *  Chequea si una clave existe
+     *  @param data_id Identificador de la clave
+     *  @return true: existe
+     */
+    virtual bool checkKey(const char* data_id);
+
+
+    /** removeKey
+     *  Elimina una clave
+     *  @param data_id Identificador de la clave
+     *  @return código de error
+     */
+    virtual int removeKey(const char* data_id);
     /**
      * Devuelve la instancia estática
      * @return

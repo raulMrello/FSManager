@@ -6,7 +6,9 @@
  */
 
 #include "FSManager.h"
-
+#if ESP_PLATFORM == 1
+#include "nvs.h"
+#endif
 
 //------------------------------------------------------------------------------------
 //--- STATIC TYPES ------------------------------------------------------------------
@@ -284,5 +286,30 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
 }
 
 
+//------------------------------------------------------------------------------------
+bool FSManager::checkKey(const char* data_id){
+	#if ESP_PLATFORM == 1
+	uint8_t data=0;
+	auto err = nvs_get_u8(_handle, data_id, (uint8_t*)data);
+	if(err == ESP_ERR_NVS_NOT_FOUND)
+		return false;
+	return true;
+	#elif __MBED__==1
+	//TODO
+	#warning TODO FSManager::checkKey()
+	return false;
+	#endif
+}
 
+
+//------------------------------------------------------------------------------------
+int FSManager::removeKey(const char* data_id){
+	#if ESP_PLATFORM == 1
+	return (int)nvs_erase_key(_handle, data_id);
+	#elif __MBED__==1
+	//TODO
+	#warning TODO FSManager::removeKey()
+	return -1;
+#endif
+}
 
