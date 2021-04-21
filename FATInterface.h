@@ -100,6 +100,11 @@ class FATInterface{
     char * Get_Fat_path(){return _path;};
     char * Get_Fat_label(){return _label;};
 
+    /*
+     * Formatea la particion
+     * */
+    void format();
+
   protected:
 
     //const char* _name;          /* Nombre del sistema de ficheros */

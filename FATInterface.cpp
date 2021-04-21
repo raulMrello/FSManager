@@ -341,3 +341,28 @@ bool FATInterface::fileExists(const char* f){
 	}
 	return false;
 }
+
+//-----------------------------------------------------------------------------------------
+void FATInterface::format(){
+	//formateamos la particion FAT
+	_mtx.lock();
+	esp_partition_iterator_t fat_ite = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_FAT, NULL);
+	if(fat_ite != NULL){
+		const esp_partition_t* part = esp_partition_get(fat_ite);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Inicio Formateamos FAT!!!!!!!!")
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Type: %d", (uint32_t)part->type);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"SubType: %d", (uint32_t)part->subtype);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Address: 0x%x", part->address);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Size: 0x%x", part->size);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Label: %d", (uint8_t)part->label);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Encrypted: %d", (uint8_t)part->encrypted);
+
+		esp_err_t err = esp_partition_erase_range(part,0, part->size);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Fin Formateamos FAT!!!!!!!!")
+		esp_partition_iterator_release(fat_ite);
+	}
+	else{
+		DEBUG_TRACE_E(_EXPR_,_MODULE_,"Particion FAT no encontrada!!!!");
+	}
+	_mtx.unlock();
+}

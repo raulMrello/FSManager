@@ -126,6 +126,11 @@ class FSManager : public NVSInterface{
      */
     static FSManager* getStaticInstance(){ return _static_instance; }
 
+    /*
+     * Borra la partición NVS creada
+     * */
+    virtual bool erase();
+
 protected:
 
 	/** Flag para habilitar trazas de depuración por defecto */

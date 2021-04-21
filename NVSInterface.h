@@ -112,6 +112,11 @@ class NVSInterface{
      */
     virtual int removeKey(const char* data_id) = 0;
 
+    /** erase
+     * Borra la particion
+     * @return true|false
+     * */
+    virtual bool erase() = 0;
   protected:
 
     const char* _name;          /// Nombre del sistema de ficheros

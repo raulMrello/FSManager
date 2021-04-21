@@ -313,3 +313,23 @@ int FSManager::removeKey(const char* data_id){
 #endif
 }
 
+//------------------------------------------------------------------------------------
+bool FSManager::erase(){
+	#if ESP_PLATFORM == 1
+	_mtx.lock();
+	nvs_handle hnd;
+	esp_err_t err = nvs_flash_erase_partition(DEFAULT_NVSInterface_Partition);
+	if (err != ESP_OK) {
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_ERASE [%d] al abrir el sistema NVS", err);
+		_mtx.unlock();
+		return false;
+	}
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS borrado.");
+	return true;
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::open()
+    return false;
+    #endif
+}
+
