@@ -343,8 +343,9 @@ bool FATInterface::fileExists(const char* f){
 }
 
 //-----------------------------------------------------------------------------------------
-void FATInterface::format(){
+bool FATInterface::format(){
 	//formateamos la particion FAT
+	bool res = true;
 	_mtx.lock();
 	esp_partition_iterator_t fat_ite = esp_partition_find(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_FAT, NULL);
 	if(fat_ite != NULL){
@@ -358,11 +359,19 @@ void FATInterface::format(){
 		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Encrypted: %d", (uint8_t)part->encrypted);
 
 		esp_err_t err = esp_partition_erase_range(part,0, part->size);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Fin Formateamos FAT!!!!!!!!")
-		esp_partition_iterator_release(fat_ite);
+		if(err != ESP_OK){
+			DEBUG_TRACE_I(_EXPR_,_MODULE_,"Error formateando partition: %d",(int)err);
+			res = false;
+		}
+		else{
+			DEBUG_TRACE_I(_EXPR_,_MODULE_,"Fin Formateamos FAT!!!!!!!!");
+			esp_partition_iterator_release(fat_ite);
+		}
 	}
 	else{
 		DEBUG_TRACE_E(_EXPR_,_MODULE_,"Particion FAT no encontrada!!!!");
+		res = false;
 	}
 	_mtx.unlock();
+	return res;
 }

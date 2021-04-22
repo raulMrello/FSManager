@@ -102,8 +102,9 @@ class FATInterface{
 
     /*
      * Formatea la particion
+     * @return true|false
      * */
-    void format();
+    bool format();
 
   protected:
 

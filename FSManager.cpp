@@ -325,6 +325,7 @@ bool FSManager::erase(){
 		return false;
 	}
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS borrado.");
+	_mtx.unlock();
 	return true;
     #elif __MBED__==1
     //TODO
