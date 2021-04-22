@@ -20,8 +20,8 @@ FSManager* FSManager::_static_instance = NULL;
 //--- PRIVATE TYPES ------------------------------------------------------------------
 //------------------------------------------------------------------------------------
 
-/** Macro para imprimir trazas de depuración, siempre que se haya configurado un objeto
- *	Logger válido (ej: _debug)
+/** Macro para imprimir trazas de depuraciï¿½n, siempre que se haya configurado un objeto
+ *	Logger vï¿½lido (ej: _debug)
  */
 static const char* _MODULE_ = "[FS]............";
 #define _EXPR_	(_defdbg && !IS_ISR())
@@ -273,7 +273,7 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
     }
 	_error = (int)err;
     if(err == ESP_OK){
-    	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos leídos correctamente de id %s", data_id);
+    	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos leï¿½dos correctamente de id %s", data_id);
     	return _error;
     }
     DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_READ. Error [%d] al leer %d datos de id %s", (int)err, size, data_id);
@@ -311,5 +311,26 @@ int FSManager::removeKey(const char* data_id){
 	#warning TODO FSManager::removeKey()
 	return -1;
 #endif
+}
+
+//------------------------------------------------------------------------------------
+bool FSManager::erase(){
+	#if ESP_PLATFORM == 1
+	_mtx.lock();
+	esp_err_t err = nvs_flash_erase_partition(DEFAULT_NVSInterface_Partition);
+	if (err != ESP_OK) {
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_ERASE [%d] al abrir el sistema NVS", err);
+		_mtx.unlock();
+		return false;
+	}
+	ESP_ERROR_CHECK(nvs_flash_deinit_partition(DEFAULT_NVSInterface_Partition));
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS borrado.");
+	_mtx.unlock();
+	return true;
+    #elif __MBED__==1
+    //TODO
+    #warning TODO FSManager::open()
+    return false;
+    #endif
 }
 
