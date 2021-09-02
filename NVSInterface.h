@@ -95,7 +95,28 @@ class NVSInterface{
      *  @return Número de bytes leídos.
      */   
     virtual int restore(const char* data_id, void* data, uint32_t size, KeyValueType type) = 0;
+
+
+    /** checkKey
+     *  Chequea si una clave existe
+     *  @param data_id Identificador de la clave
+     *  @return true: existe
+     */
+    virtual bool checkKey(const char* data_id) = 0;
+
     
+    /** removeKey
+     *  Elimina una clave
+     *  @param data_id Identificador de la clave
+     *  @return código de error
+     */
+    virtual int removeKey(const char* data_id) = 0;
+
+    /** erase
+     * Borra la particion
+     * @return true|false
+     * */
+    virtual bool erase() = 0;
   protected:
 
     const char* _name;          /// Nombre del sistema de ficheros
