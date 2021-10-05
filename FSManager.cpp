@@ -58,10 +58,10 @@ int FSManager::init() {
 	esp_err_t err = nvs_flash_init();
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
 		// NVS partition was truncated and needs to be erased
-		ESP_ERROR_CHECK(nvs_flash_erase());
+		if(nvs_flash_erase() != ESP_OK)
+			return ESP_FAIL;
 		err = nvs_flash_init();
 	}
-	ESP_ERROR_CHECK( err );
 	if(err != ESP_OK){
 		return ESP_FAIL;
 	}
@@ -69,10 +69,10 @@ int FSManager::init() {
 	err = nvs_flash_init_partition(DEFAULT_NVSInterface_Partition);
 	if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
 		// NVS partition was truncated and needs to be erased
-		ESP_ERROR_CHECK(nvs_flash_erase_partition(DEFAULT_NVSInterface_Partition));
+		if(nvs_flash_erase_partition(DEFAULT_NVSInterface_Partition) != ESP_OK)
+			return ESP_FAIL;
 		err = nvs_flash_init_partition(DEFAULT_NVSInterface_Partition);
 	}
-	ESP_ERROR_CHECK( err );
 	if(err != ESP_OK){
 		return ESP_FAIL;
 	}
@@ -323,7 +323,8 @@ bool FSManager::erase(){
 		_mtx.unlock();
 		return false;
 	}
-	ESP_ERROR_CHECK(nvs_flash_deinit_partition(DEFAULT_NVSInterface_Partition));
+	if (nvs_flash_deinit_partition(DEFAULT_NVSInterface_Partition) != ESP_OK)
+		return false;
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS borrado.");
 	_mtx.unlock();
 	return true;
