@@ -323,8 +323,8 @@ bool FSManager::erase(){
 		_mtx.unlock();
 		return false;
 	}
-	if (nvs_flash_deinit_partition(DEFAULT_NVSInterface_Partition) != ESP_OK)
-		return false;
+	//if (nvs_flash_deinit_partition(DEFAULT_NVSInterface_Partition) != ESP_OK)
+	//	return false;
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS borrado.");
 	_mtx.unlock();
 	return true;
