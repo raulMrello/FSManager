@@ -305,7 +305,28 @@ bool FSManager::checkKey(const char* data_id){
 //------------------------------------------------------------------------------------
 int FSManager::removeKey(const char* data_id){
 	#if ESP_PLATFORM == 1
-	return (int)nvs_erase_key(_handle, data_id);
+	esp_err_t err = ESP_ERR_NVS_INVALID_HANDLE;
+	if(!_handle){
+		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <save>");
+		return (int)err;
+	}
+	err = nvs_erase_key(_handle, data_id);
+	if(err != ESP_OK){
+    	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_WR Error [%d] al escribir en id %s", (int)err, data_id);
+    	_error = (int)err;
+    	return _error;
+    }
+
+	err = nvs_commit(_handle);
+	if(err == ESP_OK){
+		DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos borrados en id %s", data_id);
+		_error = (int)err;
+		return _error;
+	}
+
+	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_COMMIT Error [%d] al escribir en id %s", (int)err, data_id);
+    _error = (int)err;
+    return _error;
 	#elif __MBED__==1
 	//TODO
 	#warning TODO FSManager::removeKey()
