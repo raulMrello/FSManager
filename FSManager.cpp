@@ -312,7 +312,7 @@ int FSManager::removeKey(const char* data_id){
 	}
 	err = nvs_erase_key(_handle, data_id);
 	if(err != ESP_OK){
-    	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_WR Error [%d] al escribir en id %s", (int)err, data_id);
+    	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_WR Error [%d] al eliminar en id %s", (int)err, data_id);
     	_error = (int)err;
     	return _error;
     }
@@ -324,7 +324,7 @@ int FSManager::removeKey(const char* data_id){
 		return _error;
 	}
 
-	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_COMMIT Error [%d] al escribir en id %s", (int)err, data_id);
+	DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_COMMIT Error [%d] al eliminar en id %s", (int)err, data_id);
     _error = (int)err;
     return _error;
 	#elif __MBED__==1
