@@ -38,7 +38,7 @@ static const char* _MODULE_ = "[FS]............";
 FSManager::FSManager(const char *name, PinName32 mosi, PinName32 miso, PinName32 sclk, PinName32 csel, int freq, bool defdbg) : NVSInterface(name) {
     #if ESP_PLATFORM == 1
 	_ready = false;
-	_defdbg = defdbg;
+	_defdbg = true;
 	// inicializo
 	_mtx.lock();
 	init();
@@ -48,6 +48,7 @@ FSManager::FSManager(const char *name, PinName32 mosi, PinName32 miso, PinName32
     #warning TODO FSManager::FSManager()
     #endif
 	_static_instance = this;
+	esp_log_level_set(_MODULE_, ESP_LOG_WARN);
 }
 
 
@@ -88,6 +89,11 @@ int FSManager::init() {
 	}
 	nvs_close(_handle);
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Sistema NVS OK!");
+	// Example of nvs_get_stats() to get the number of used entries and free entries:
+	nvs_stats_t nvs_stats;
+	nvs_get_stats("nvs_key", &nvs_stats);
+	DEBUG_TRACE_E(_EXPR_, _MODULE_, "(%s)[%d]Inicio Count: UsedEntries = (%d), FreeEntries = (%d), AllEntries = (%d)", __func__, __LINE__, nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
+
 	_ready = true;
 	return err;
     #elif __MBED__==1
@@ -148,6 +154,10 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
 		return (int)err;
 	}
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Escribiendo %d datos en id %s...", size, data_id);
+	// Example of nvs_get_stats() to get the number of used entries and free entries:
+	nvs_stats_t nvs_stats;
+	nvs_get_stats("nvs_key", &nvs_stats);
+	DEBUG_TRACE_E(_EXPR_, _MODULE_, "(%s)[%d]Antes Count: UsedEntries = (%d), FreeEntries = (%d), AllEntries = (%d)", __func__, __LINE__, nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
     switch(type){
     	case NVSInterface::TypeUint8:{
     		err = nvs_set_u8(_handle, data_id, *(uint8_t*)data);
@@ -203,6 +213,9 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
     if(err == ESP_OK){
     	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos escritos en id %s", data_id);
     	_error = (int)err;
+		// Example of nvs_get_stats() to get the number of used entries and free entries:
+		nvs_get_stats("nvs_key", &nvs_stats);
+		DEBUG_TRACE_E(_EXPR_, _MODULE_, "(%s)[%d]Despues Count: UsedEntries = (%d), FreeEntries = (%d), AllEntries = (%d)", __func__, __LINE__, nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
     	return _error;
     }
     DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_COMMIT Error [%d] al escribir en id %s", (int)err, data_id);
