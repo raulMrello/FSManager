@@ -142,6 +142,8 @@ void FSManager::close(){
 //------------------------------------------------------------------------------------
 int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
     #if ESP_PLATFORM == 1
+	// Eliminamos la clave antes para obtener ese espacio
+	removeKey(data_id);
 	esp_err_t err = ESP_ERR_NVS_INVALID_HANDLE;
 	if(!_handle){
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <save>");
