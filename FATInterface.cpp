@@ -124,8 +124,9 @@ FILE * FATInterface::open(const char *filename,const char *opentype){
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Abriendo archivo %s", fullpath);
 	_mtx.lock();
 	fp = fopen(fullpath, opentype);
-	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Archivo fp=%x", (uint32_t)fp);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Archivo fp=%ld", (uint32_t)fp);
 	_mtx.unlock();
+	fullpath = NULL;
 	delete(fullpath);
 	return fp;
 
@@ -157,6 +158,7 @@ int FATInterface::_unlink(const char *filename){
 	_mtx.lock();
 	result = unlink(fullpath);
 	_mtx.unlock();
+	fullpath = NULL;
 	delete(fullpath);
 	return result;
 
@@ -261,6 +263,7 @@ int FATInterface::listFolder(const char* folder, std::list<const char*> *file_li
 	else{
 		DEBUG_TRACE_E(_EXPR_, _MODULE_, "dir = null");
 	}
+	txt = NULL;
 	delete(txt);
 	return count;
 }
@@ -275,6 +278,7 @@ int FATInterface::createFolder(const char* folder){
 	if(!dir){
 		int res = mkdir(txt, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH);
 	}
+	txt = NULL;
 	delete(txt);
 	return res;
 }
@@ -294,7 +298,9 @@ int FATInterface::copyFile(const char* src_file, const char* dest_file, bool era
 	std::ifstream srce( stxt, std::ios::binary );
 	std::ofstream dest( dtxt, std::ios::binary );
 	dest << srce.rdbuf();
+	dtxt = NULL;
 	delete(dtxt);
+	stxt = NULL;
 	delete(stxt);
 	if(!erase_src)
 		return 0;
@@ -328,6 +334,7 @@ int FATInterface::eraseFile(const char* f){
 	MBED_ASSERT(stxt);
 	sprintf(stxt, "%s/%s", _path, f);
 	int res = remove(stxt);
+	stxt = NULL;
 	delete(stxt);
 	return res;
 }
@@ -351,12 +358,12 @@ bool FATInterface::format(){
 	if(fat_ite != NULL){
 		const esp_partition_t* part = esp_partition_get(fat_ite);
 		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Inicio Formateamos FAT!!!!!!!!")
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Type: %d", (uint32_t)part->type);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"SubType: %d", (uint32_t)part->subtype);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Address: 0x%x", part->address);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Size: 0x%x", part->size);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Label: %d", (uint8_t)part->label);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Encrypted: %d", (uint8_t)part->encrypted);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Type: %ld", (uint32_t)part->type);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"SubType: %ld", (uint32_t)part->subtype);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Address: 0x%ld", part->address);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Size: 0x%ld", part->size);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Label: %s", part->label);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Encrypted: %d", part->encrypted);
 
 		esp_err_t err = esp_partition_erase_range(part,0, part->size);
 		if(err != ESP_OK){

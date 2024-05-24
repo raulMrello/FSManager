@@ -11,11 +11,16 @@
 #ifndef __FATInterface__H
 #define __FATInterface__H
 
+#ifndef ESP_PLATFORM
+#define ESP_PLATFORM 	1
+#endif
+
 #include "mbed.h"
 #if ESP_PLATFORM == 1
 #include "esp_vfs_fat.h"
 #endif
 #include <list>
+#include <sys/stat.h>
 #include <dirent.h>
 
 #define DEFAULT_FATInterface_Partition	(const char*)"fat_stm32"
@@ -55,7 +60,7 @@ class FATInterface{
      * Lista los archivos de un directorio y los devuelve como una lista de nombres
      * @param folder Directorio en el que buscar
      * @param file_list Lista a rellenar con los nombres de archivo encontrados
-     * @return Número de archivos encontrados
+     * @return Nï¿½mero de archivos encontrados
      */
     int listFolder(const char* folder, std::list<const char*> *file_list);
 
@@ -109,7 +114,7 @@ class FATInterface{
   protected:
 
     //const char* _name;          /* Nombre del sistema de ficheros */
-    int _error;                 /* Último error registrado */
+    int _error;                 /* ï¿½ltimo error registrado */
     bool _ready;
 
     bool _defdbg;

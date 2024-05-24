@@ -149,7 +149,7 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <save>");
 		return (int)err;
 	}
-	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Escribiendo %d datos en id %s...", size, data_id);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Escribiendo %ld datos en id %s...", size, data_id);
     switch(type){
     	case NVSInterface::TypeUint8:{
     		err = nvs_set_u8(_handle, data_id, *(uint8_t*)data);
@@ -226,7 +226,7 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
 		DEBUG_TRACE_W(_EXPR_, _MODULE_, "ERR_HND, Handle nulo en <restore>");
 		return (int)err;
 	}
-	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Leyendo %d datos de id %s...", size, data_id);
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Leyendo %ld datos de id %s...", size, data_id);
 	switch(type){
     	case NVSInterface::TypeUint8:{
     		err = nvs_get_u8(_handle, data_id, (uint8_t*)data);
@@ -278,7 +278,7 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
     	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Datos le�dos correctamente de id %s", data_id);
     	return _error;
     }
-    DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_READ. Error [%d] al leer %d datos de id %s", (int)err, size, data_id);
+    DEBUG_TRACE_E(_EXPR_, _MODULE_, "ERR_READ. Error [%d] al leer %ld datos de id %s", (int)err, size, data_id);
     return _error;
     #elif __MBED__==1
     //TODO
