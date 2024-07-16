@@ -318,8 +318,10 @@ int FATInterface::renameFile(const char* src_file, const char* dest_file){
 	char* dtxt = new char[strlen(_path)+1+strlen(dest_file)+1]();
 	MBED_ASSERT(dtxt);
 	sprintf(dtxt, "%s/%s", _path, dest_file);
-
-	return rename(stxt, dtxt);
+	int res = rename(stxt, dtxt);
+	delete(dtxt);
+	delete(stxt);
+	return res;
 }
 
 //-----------------------------------------------------------------------------------------
