@@ -358,3 +358,64 @@ bool FSManager::erase(){
     #endif
 }
 
+
+void FSManager::list_nvs_keys() {
+	#if ESP_PLATFORM == 1
+    //nvs_flash_init();  // Inicializa NVS
+	DEBUG_TRACE_E(true, _MODULE_, "Listando claves NVS...");
+	
+    nvs_iterator_t it = nvs_entry_find(DEFAULT_NVSInterface_Partition, NULL, NVS_TYPE_ANY);
+    uint32_t keyCount = 0;
+    while (it != NULL) {
+        nvs_entry_info_t info;
+        nvs_entry_info(it, &info);  // Obtiene información de la entrada
+        DEBUG_TRACE_E(true, _MODULE_,"[%d]Key: %s", ++keyCount, info.key);  // Imprime la clave
+        it = nvs_entry_next(it);  // Itera al siguiente
+    }
+
+    nvs_release_iterator(it);  // Libera el iterador
+	#endif
+}
+
+void FSManager::eraseKeyList(std::vector<std::string> keys_to_manage, bool delete_only_these) {
+	#if ESP_PLATFORM == 1
+	esp_err_t err = ESP_OK;
+	open();
+    // Iterador para recorrer todas las claves
+    nvs_iterator_t it = nvs_entry_find(DEFAULT_NVSInterface_Partition, NULL, NVS_TYPE_ANY);
+    
+    while (it != NULL) {
+        nvs_entry_info_t info;
+        nvs_entry_info(it, &info);
+        
+        // Verifica si la clave está en la lista
+		// recorremos el vector de claves a borrar
+		bool key_in_list = false;
+		for(uint32_t i=0; i<keys_to_manage.size(); i++){
+			if((strcmp(info.key, keys_to_manage[i].c_str()) == 0) && 
+			   (strlen(info.key) == strlen(keys_to_manage[i].c_str()))){
+				key_in_list = true;
+				break;
+			}
+		}
+
+        if ((delete_only_these && key_in_list) || (!delete_only_these && !key_in_list)) {
+            DEBUG_TRACE_I(_EXPR_, _MODULE_, "Deleting key: %s", info.key);
+            err = nvs_erase_key(_handle, info.key);
+            if (err != ESP_OK) {
+                DEBUG_TRACE_E(_EXPR_, _MODULE_, "Error deleting key: %s", esp_err_to_name(err));
+            }
+        }
+
+        it = nvs_entry_next(it);
+    }
+
+    // Libera el iterador
+    nvs_release_iterator(it);
+
+    // Guarda los cambios
+    nvs_commit(_handle);
+	close();
+	#endif
+}
+
