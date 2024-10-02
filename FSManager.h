@@ -4,12 +4,12 @@
  *  Created on: Sep 2017
  *      Author: raulMrello
  *
- *	FSManager es el módulo encargado de gestionar el acceso al sistema de ficheros. Es una implementación de la clase
- *  FATFileSystem, heredando por lo tanto sus miembros públicos.
+ *	FSManager es el mï¿½dulo encargado de gestionar el acceso al sistema de ficheros. Es una implementaciï¿½n de la clase
+ *  FATFileSystem, heredando por lo tanto sus miembros pï¿½blicos.
  *  El soporte del sistema de ficheros corre sobre una memoria NOR-Flash SPI SST6VFX de Microchip y por lo tanto se
  *  implementa un SPIFBlockDevice.
  *
- *  Este módulo se ejecuta como una librería pasiva, es decir, corriendo en el contexto del objeto llamante, y por lo
+ *  Este mï¿½dulo se ejecuta como una librerï¿½a pasiva, es decir, corriendo en el contexto del objeto llamante, y por lo
  *  tanto carece de thread asociado
  */
  
@@ -19,6 +19,8 @@
 #include "mbed.h"
 #include "Heap.h"
 #include "NVSInterface.h"
+#include <vector>
+#include <string>
 #if ESP_PLATFORM == 1
 #include "FATInterface.h"
 #endif
@@ -44,7 +46,7 @@ class FSManager : public NVSInterface{
      *  @param sclk Reloj SPI en modo master. Por defecto no utilizado (NC)
      *  @param csel Salida NSS en modo master gestionada por hardware. Por defecto no utilizado (NC)
      *  @param freq Frecuencia SPI (40MHz o 20MHz dependiendo del puerto utilizado).. Por defecto no utilizado (0)
-     *  @param defdbg Flag para activar o desactivar el canal de depuración por defecto
+     *  @param defdbg Flag para activar o desactivar el canal de depuraciï¿½n por defecto
      */
     FSManager(const char *name, PinName32 mosi=NC, PinName32 miso=NC, PinName32 sclk=NC, PinName32 csel=NC, int freq=0, bool defdbg = false);
     virtual ~FSManager(){
@@ -53,19 +55,19 @@ class FSManager : public NVSInterface{
   
     /** init
      *  Inicializa el sistema de ficheros
-     *  @return 0 (correcto), <0 (código de error)
+     *  @return 0 (correcto), <0 (cï¿½digo de error)
      */
     virtual int init();
 
 
-	/** Habilita canal de depuración por defecto <printf>
-     *  @param endis Flag para activar o desactivar el canal de depuración por defecto
+	/** Habilita canal de depuraciï¿½n por defecto <printf>
+     *  @param endis Flag para activar o desactivar el canal de depuraciï¿½n por defecto
      */
     void setDebugChannel(bool defdbg) {_defdbg = defdbg; }
   
   
     /** ready
-     *  Chequea si el sistema de ficheros está listo
+     *  Chequea si el sistema de ficheros estï¿½ listo
      *  @return True (si tiene formato) o False (si tiene errores)
      */
     virtual bool ready() {return _ready; }
@@ -85,23 +87,23 @@ class FSManager : public NVSInterface{
   
 
     /** save
-     *  Graba datos en memoria no volátil de acuerdo a un identificador dado
+     *  Graba datos en memoria no volï¿½til de acuerdo a un identificador dado
      *  @param data_id Identificador de los datos a grabar
      *  @param data  Puntero a los datos 
-     *  @param size Tamaño de los datos en bytes
+     *  @param size Tamaï¿½o de los datos en bytes
      *  @param type tipo de dato
-     *  @return Resultado de la operación (error=-1, num_datos_escritos >= 0)
+     *  @return Resultado de la operaciï¿½n (error=-1, num_datos_escritos >= 0)
      */   
     virtual int save(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
   
   
     /** restore
-     *  Recupera datos de memoria no volátil de acuerdo a un identificador dado
+     *  Recupera datos de memoria no volï¿½til de acuerdo a un identificador dado
      *  @param data_id Identificador de los datos a grabar
      *  @param data  Puntero que recibe los datos recuperados
-     *  @param size Tamaño máximo de datos a recuperar
+     *  @param size Tamaï¿½o mï¿½ximo de datos a recuperar
      *  @param type tipo de dato
-     *  @return Resultado de la operación (error=-1, num_datos recuperados >= 0)
+     *  @return Resultado de la operaciï¿½n (error=-1, num_datos recuperados >= 0)
      */   
     virtual int restore(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
 
@@ -117,23 +119,27 @@ class FSManager : public NVSInterface{
     /** removeKey
      *  Elimina una clave
      *  @param data_id Identificador de la clave
-     *  @return código de error
+     *  @return cï¿½digo de error
      */
     virtual int removeKey(const char* data_id);
     /**
-     * Devuelve la instancia estática
+     * Devuelve la instancia estï¿½tica
      * @return
      */
     static FSManager* getStaticInstance(){ return _static_instance; }
 
     /*
-     * Borra la partición NVS creada
+     * Borra la particiï¿½n NVS creada
      * */
     virtual bool erase();
 
+    void list_nvs_keys();
+
+    void eraseKeyList(std::vector<std::string> keys_to_manage, bool delete_only_these);
+
 protected:
 
-	/** Flag para habilitar trazas de depuración por defecto */
+	/** Flag para habilitar trazas de depuraciï¿½n por defecto */
 	bool _defdbg;
 
 	/** Mutex de acceso al sistema NVS */
@@ -143,7 +149,7 @@ private:
 
 	/** Propiedades heredadas de NVSInterface */
 	// const char* _name;          /// Nombre del sistema de ficheros
-	// int _error;                 /// Último error registrado
+	// int _error;                 /// ï¿½ltimo error registrado
 
 	#if ESP_PLATFORM == 1
 	nvs_handle _handle;
@@ -152,7 +158,7 @@ private:
 	/** Flag para indicar el estado del componente */
 	bool _ready;
 
-	/** instancia estática */
+	/** instancia estï¿½tica */
 	static FSManager* _static_instance;
 
 };
