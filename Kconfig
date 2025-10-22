@@ -32,7 +32,7 @@ menu "FATInterface Configuration"
     config FAT_PARTITION_NAME
         depends on FATINTERFACE_ENABLED
         string "FAT Partition Name"
-        default "fatfs"
+        default "fat_fs"
         help
             Partition name for FATInterface
     
