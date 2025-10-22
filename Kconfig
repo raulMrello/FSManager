@@ -1,0 +1,53 @@
+menu "FATInterface Configuration"
+
+    config FATINTERFACE_ENABLED
+        bool "FATInterface Enabled"
+        default y
+
+    choice FATINTERFACE_LOG_LEVEL
+        depends on FATINTERFACE_ENABLED
+        prompt "Log level for FATInterface"
+        default FATINTERFACE_LOG_LEVEL_WARN
+
+        config FATINTERFACE_LOG_LEVEL_NONE
+            bool "NONE"
+        
+        config FATINTERFACE_LOG_LEVEL_ERROR
+            bool "ERROR"
+
+        config FATINTERFACE_LOG_LEVEL_WARN
+            bool "WARN"
+
+        config FATINTERFACE_LOG_LEVEL_INFO
+            bool "INFO"
+
+        config FATINTERFACE_LOG_LEVEL_DEBUG
+            bool "DEBUG"
+
+        config FATINTERFACE_LOG_LEVEL_VERBOSE
+            bool "VERBOSE"
+
+    endchoice 
+    
+    config FAT_PARTITION_NAME
+        depends on FATINTERFACE_ENABLED
+        string "FAT Partition Name"
+        default "fatfs"
+        help
+            Partition name for FATInterface
+    
+    config FAT_PATH
+        depends on FATINTERFACE_ENABLED
+        string "FAT Mount Path"
+        default "spiflash"
+        help
+            Mount path for FATInterface
+
+    config FAT_MAX_FILES
+        depends on FATINTERFACE_ENABLED
+        int "FAT Max Open Files"
+        default 20
+        help
+            Maximum number of open files for FATInterface
+
+endmenu
