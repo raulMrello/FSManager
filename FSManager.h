@@ -16,8 +16,14 @@
 #ifndef __FSManager__H
 #define __FSManager__H
 
+#if __MBED__==1
 #include "mbed.h"
 #include "Heap.h"
+#else
+#include <stdint.h>
+#include <stddef.h>
+#include <mutex>
+#endif
 #include "NVSInterface.h"
 #include <vector>
 #include <string>
@@ -58,6 +64,11 @@ class FSManager : public NVSInterface{
      *  @return 0 (correcto), <0 (c�digo de error)
      */
     virtual int init();
+
+  /** isInitialized
+   *  Indica si se ha ejecutado init() con éxito.
+   */
+  bool isInitialized() const { return _ready; }
 
 
 	/** Habilita canal de depuraci�n por defecto <printf>
@@ -143,7 +154,11 @@ protected:
 	bool _defdbg;
 
 	/** Mutex de acceso al sistema NVS */
-	Mutex _mtx;
+#if __MBED__==1
+  Mutex _mtx;
+#else
+  std::mutex _mtx;
+#endif
 
 private:
 
@@ -152,7 +167,7 @@ private:
 	// int _error;                 /// �ltimo error registrado
 
 	#if ESP_PLATFORM == 1
-	nvs_handle _handle;
+	nvs_handle_t _handle;
 	#endif
 
 	/** Flag para indicar el estado del componente */

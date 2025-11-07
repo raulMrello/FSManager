@@ -9,6 +9,8 @@
  */
 #include "FATInterface.h"
 #include <fstream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 /** instancia est�tica */
 FATInterface* FATInterface::_static_instance = NULL;
@@ -41,12 +43,17 @@ FATInterface::FATInterface(const char *partition_label, const char *path, int nu
 
 
 	setLoggingLevel(ESP_LOG_INFO);
-	if(mount(format)!= ESP_OK)
-		return;
+	if(mount(format)!= ESP_OK){
+		DEBUG_TRACE_I(_EXPR_, _MODULE_, "Salimosssss");
+		
+		//return;
+	}
 	_static_instance = this;
 }
 FATInterface::~FATInterface(){
-	umount();
+	if(_ready){
+		umount();
+	}
 	_static_instance = NULL;
 	_ready = false;
 }
@@ -76,23 +83,31 @@ void FATInterface::setLoggingLevel(esp_log_level_t level){
  * @param[in]	path: path reaiz que se usar� para la particion
  * @return True: Handle abierto, False: Handle no abierto (error)
  */
-int FATInterface::mount(bool format) {
-	esp_err_t _err;
-	esp_vfs_fat_mount_config_t mount_config;
+esp_err_t FATInterface::mount(bool format) {
+    if (_ready) return ESP_OK;  // ya montado
 
-	mount_config.max_files = _num_files_max;
-	mount_config.format_if_mount_failed = format;
-	mount_config.allocation_unit_size = CONFIG_WL_SECTOR_SIZE;
+    esp_vfs_fat_mount_config_t mount_config = {};
+    mount_config.max_files = _num_files_max;
+    mount_config.format_if_mount_failed = format;
+    mount_config.allocation_unit_size = 4096; // o 0 para auto
 
-	_err = esp_vfs_fat_spiflash_mount(_path, _label, &mount_config, &s_wl_handle);
-	if(_err != ESP_OK){
-		DEBUG_TRACE_E(_EXPR_, _MODULE_, "Error montando Fatfs path:%s , label:%s  %s",_path,_label,esp_err_to_name(_err));
-		return _err;
-	}
-	DEBUG_TRACE_I(_EXPR_, _MODULE_, "Fatfs CREADO CORRECTAMENTE");
-	_ready = true;
-	return _err;
+    esp_err_t err = esp_vfs_fat_spiflash_mount_rw_wl(
+        _path,   // p.ej. "/fat"
+        _label,  // p.ej. "fatfs" en partitions.csv
+        &mount_config,
+        &s_wl_handle
+    );
+    if (err != ESP_OK) {
+        DEBUG_TRACE_E(_EXPR_, _MODULE_, "Error montando Fatfs path:%s , label:%s  %s",
+                      _path, _label, esp_err_to_name(err));
+        return err;
+    }
+
+    DEBUG_TRACE_I(_EXPR_, _MODULE_, "FATFS montado correctamente en %s (label=%s)", _path, _label);
+    _ready = true;
+    return ESP_OK;
 }
+
 
 
 /** @brief		Desmonta la particion fat
@@ -101,7 +116,7 @@ int FATInterface::mount(bool format) {
 int FATInterface::umount() {
 	esp_err_t _err;
 
-	_err = esp_vfs_fat_spiflash_unmount(_path, s_wl_handle);
+	_err = esp_vfs_fat_spiflash_unmount_rw_wl(_path, s_wl_handle);
 	if(_err != ESP_OK){
 		DEBUG_TRACE_E(_EXPR_, _MODULE_, "OTHER ERROR %s",esp_err_to_name(_err));
 		return _err;
@@ -124,9 +139,10 @@ FILE * FATInterface::open(const char *filename,const char *opentype){
 	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Abriendo archivo %s", fullpath);
 	_mtx.lock();
 	fp = fopen(fullpath, opentype);
-	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Archivo fp=%x", (uint32_t)fp);
+	// fp es un puntero; casteado a uint32_t debe mostrarse con %lu
+	DEBUG_TRACE_D(_EXPR_, _MODULE_, "Archivo fp=%lu", (uint32_t)fp);
 	_mtx.unlock();
-	delete(fullpath);
+	delete[] fullpath;
 	return fp;
 
 }
@@ -157,7 +173,7 @@ int FATInterface::_unlink(const char *filename){
 	_mtx.lock();
 	result = unlink(fullpath);
 	_mtx.unlock();
-	delete(fullpath);
+	delete[] fullpath;
 	return result;
 
 }
@@ -261,7 +277,7 @@ int FATInterface::listFolder(const char* folder, std::list<const char*> *file_li
 	else{
 		DEBUG_TRACE_E(_EXPR_, _MODULE_, "dir = null");
 	}
-	delete(txt);
+	delete[] txt;
 	return count;
 }
 
@@ -273,9 +289,9 @@ int FATInterface::createFolder(const char* folder){
 	sprintf(txt, "%s/%s", _path, folder);
 	DIR* dir = opendir(txt);
 	if(!dir){
-		int res = mkdir(txt, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH);
+		res = mkdir(txt, S_IRWXU | S_IRWXG | S_IRWXO);
 	}
-	delete(txt);
+	delete[] txt;
 	return res;
 }
 
@@ -294,8 +310,8 @@ int FATInterface::copyFile(const char* src_file, const char* dest_file, bool era
 	std::ifstream srce( stxt, std::ios::binary );
 	std::ofstream dest( dtxt, std::ios::binary );
 	dest << srce.rdbuf();
-	delete(dtxt);
-	delete(stxt);
+	delete[] dtxt;
+	delete[] stxt;
 	if(!erase_src)
 		return 0;
 	return eraseFile(src_file);
@@ -319,8 +335,8 @@ int FATInterface::renameFile(const char* src_file, const char* dest_file){
 	MBED_ASSERT(dtxt);
 	sprintf(dtxt, "%s/%s", _path, dest_file);
 	int res = rename(stxt, dtxt);
-	delete(dtxt);
-	delete(stxt);
+	delete[] dtxt;
+	delete[] stxt;
 	return res;
 }
 
@@ -330,7 +346,7 @@ int FATInterface::eraseFile(const char* f){
 	MBED_ASSERT(stxt);
 	sprintf(stxt, "%s/%s", _path, f);
 	int res = remove(stxt);
-	delete(stxt);
+	delete[] stxt;
 	return res;
 }
 
@@ -353,12 +369,12 @@ bool FATInterface::format(){
 	if(fat_ite != NULL){
 		const esp_partition_t* part = esp_partition_get(fat_ite);
 		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Inicio Formateamos FAT!!!!!!!!")
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Type: %d", (uint32_t)part->type);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"SubType: %d", (uint32_t)part->subtype);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Address: 0x%x", part->address);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Size: 0x%x", part->size);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Label: %d", (uint8_t)part->label);
-		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Encrypted: %d", (uint8_t)part->encrypted);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Type: %lu", (unsigned long)part->type);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"SubType: %lu", (unsigned long)part->subtype);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Address: 0x%08lx", (unsigned long)part->address);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Size: 0x%08lx", (unsigned long)part->size);
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Label: %s", part->label ? part->label : "<null>");
+		DEBUG_TRACE_I(_EXPR_,_MODULE_,"Encrypted: %u", (unsigned)part->encrypted);
 
 		esp_err_t err = esp_partition_erase_range(part,0, part->size);
 		if(err != ESP_OK){
