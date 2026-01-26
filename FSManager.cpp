@@ -27,7 +27,7 @@ static const char* _MODULE_ = "[FS]............";
 #define _EXPR_	(_defdbg && !IS_ISR())
 
 
- 
+
 //------------------------------------------------------------------------------------
 //-- PUBLIC METHODS IMPLEMENTATION ---------------------------------------------------
 //------------------------------------------------------------------------------------
@@ -261,11 +261,17 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
     		break;
     	}
     	case NVSInterface::TypeString:{
-    		err = nvs_get_str (_handle, data_id, (char*)data, (size_t*)&size);
+    		size_t required_size = (size_t)size;
+            err = nvs_get_str (_handle, data_id, (char*)data, &required_size);
     		break;
     	}
     	case NVSInterface::TypeBlob:{
-    		err = nvs_get_blob(_handle, data_id, data, (size_t*)&size);
+    		size_t blob_size = (size_t)size;
+            err = nvs_get_blob(_handle, data_id, data, &blob_size);
+            if(err == ESP_OK && blob_size != (size_t)size){
+                DEBUG_TRACE_W(_EXPR_, _MODULE_, "WARN_SIZE. Tamaño en NVS (%d) diferente al buffer (%d) para id %s", blob_size, size, data_id);
+                err = ESP_ERR_NVS_INVALID_LENGTH;
+            }
     		break;
     	}
     	default:{
@@ -363,7 +369,7 @@ void FSManager::list_nvs_keys() {
 	#if ESP_PLATFORM == 1
     //nvs_flash_init();  // Inicializa NVS
 	DEBUG_TRACE_E(true, _MODULE_, "Listando claves NVS...");
-	
+
     nvs_iterator_t it = nvs_entry_find(DEFAULT_NVSInterface_Partition, NULL, NVS_TYPE_ANY);
     uint32_t keyCount = 0;
     while (it != NULL) {
@@ -383,16 +389,16 @@ void FSManager::eraseKeyList(std::vector<std::string> keys_to_manage, bool delet
 	open();
     // Iterador para recorrer todas las claves
     nvs_iterator_t it = nvs_entry_find(DEFAULT_NVSInterface_Partition, NULL, NVS_TYPE_ANY);
-    
+
     while (it != NULL) {
         nvs_entry_info_t info;
         nvs_entry_info(it, &info);
-        
+
         // Verifica si la clave está en la lista
 		// recorremos el vector de claves a borrar
 		bool key_in_list = false;
 		for(uint32_t i=0; i<keys_to_manage.size(); i++){
-			if((strcmp(info.key, keys_to_manage[i].c_str()) == 0) && 
+			if((strcmp(info.key, keys_to_manage[i].c_str()) == 0) &&
 			   (strlen(info.key) == strlen(keys_to_manage[i].c_str()))){
 				key_in_list = true;
 				break;
@@ -418,4 +424,3 @@ void FSManager::eraseKeyList(std::vector<std::string> keys_to_manage, bool delet
 	close();
 	#endif
 }
-
