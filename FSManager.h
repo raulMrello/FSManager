@@ -49,9 +49,7 @@ class FSManager : public NVSInterface{
      *  @param defdbg Flag para activar o desactivar el canal de depuraci�n por defecto
      */
     FSManager(const char *name, PinName32 mosi=NC, PinName32 miso=NC, PinName32 sclk=NC, PinName32 csel=NC, int freq=0, bool defdbg = false);
-    virtual ~FSManager(){
-    	_static_instance = NULL;
-    }
+    virtual ~FSManager();
   
     /** init
      *  Inicializa el sistema de ficheros
@@ -154,6 +152,77 @@ private:
 	#if ESP_PLATFORM == 1
 	nvs_handle _handle;
 	#endif
+
+  #if ESP_PLATFORM == 1
+  // ---------------------------------------------------------------------------------
+  // Worker interno: todas las llamadas a NVS se ejecutan en este hilo
+  // (stack en RAM interna) para que los hilos de ActiveModule puedan ir
+  // opcionalmente a memoria externa sin arrastrar las restricciones de NVS.
+  // ---------------------------------------------------------------------------------
+  enum class WorkerOp : uint8_t {
+    Init,
+    Open,
+    Close,
+    Save,
+    Restore,
+    CheckKey,
+    RemoveKey,
+    ErasePartition,
+    ListKeys,
+    EraseKeyList,
+    Stop
+  };
+
+  struct WorkerJob {
+    WorkerOp op;
+    const char* data_id;
+    void* data;
+    uint32_t size;
+    NVSInterface::KeyValueType type;
+    std::vector<std::string>* keys_to_manage;
+    bool delete_only_these;
+    int result_i;
+    bool result_b;
+    Semaphore done;
+
+    explicit WorkerJob(WorkerOp op_) :
+      op(op_),
+      data_id(NULL),
+      data(NULL),
+      size(0),
+      type(NVSInterface::TypeUint8),
+      keys_to_manage(NULL),
+      delete_only_these(false),
+      result_i(0),
+      result_b(false),
+      done(0, 1) {
+    }
+  };
+
+  static constexpr uint32_t WorkerQueueDepth = 16;
+  Thread* _worker_th = NULL;
+  Semaphore _worker_started{0, 1};
+  Queue<WorkerJob, WorkerQueueDepth> _worker_queue;
+  osThreadId _worker_tid = NULL;
+  bool _worker_ok = false;
+  int _open_refcount = 0;
+
+  void _ensureWorker();
+  bool _inWorkerContext() const;
+  void _workerTask();
+  void _dispatchJob(WorkerJob& job);
+
+  int _init_internal();
+  bool _open_internal();
+  void _close_internal(bool force);
+  int _save_internal(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
+  int _restore_internal(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type);
+  bool _checkKey_internal(const char* data_id);
+  int _removeKey_internal(const char* data_id);
+  bool _erase_internal();
+  void _list_nvs_keys_internal();
+  void _eraseKeyList_internal(std::vector<std::string>& keys_to_manage, bool delete_only_these);
+  #endif
 
 	/** Flag para indicar el estado del componente */
 	bool _ready;
