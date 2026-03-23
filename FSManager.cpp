@@ -300,7 +300,7 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
     		size_t blob_size = (size_t)size;
             err = nvs_get_blob(_handle, data_id, data, &blob_size);
             if(err == ESP_OK && blob_size != (size_t)size){
-                DEBUG_TRACE_W(_EXPR_, _MODULE_, "WARN_SIZE. Tamaño en NVS (%d) diferente al buffer (%d) para id %s", blob_size, size, data_id);
+                DEBUG_TRACE_W(_EXPR_, _MODULE_, "WARN_SIZE. Tamaño en NVS (%zu) diferente al buffer (%lu) para id %s", blob_size, (unsigned long)size, data_id);
                 err = ESP_ERR_NVS_INVALID_LENGTH;
             }
     		break;
