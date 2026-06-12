@@ -266,12 +266,17 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
     		break;
     	}
     	case NVSInterface::TypeBlob:{
-    		size_t blob_size = (size_t)size;
-            err = nvs_get_blob(_handle, data_id, data, &blob_size);
-            if(err == ESP_OK && blob_size != (size_t)size){
+    		size_t blob_size = 0;
+            err = nvs_get_blob(_handle, data_id, NULL, &blob_size);
+            if(err != ESP_OK){
+                break;
+            }
+            if(blob_size != (size_t)size){
                 DEBUG_TRACE_W(_EXPR_, _MODULE_, "WARN_SIZE. Tamaño en NVS (%d) diferente al buffer (%d) para id %s", blob_size, size, data_id);
                 err = ESP_ERR_NVS_INVALID_LENGTH;
+                break;
             }
+            err = nvs_get_blob(_handle, data_id, data, &blob_size);
     		break;
     	}
     	default:{
