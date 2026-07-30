@@ -61,6 +61,14 @@ class FATInterface{
     int _unlink(const char *filename);
     size_t write(const void *data,size_t size,size_t count,FILE*stream);
     size_t read(void *data,size_t size, size_t count,FILE *stream);
+
+    // Wrappers stdio para evitar que los módulos llamen directamente a fseek/ftell/etc.
+    // (y poder ejecutar dichas operaciones desde un hilo con stack en RAM interna).
+    int seek(FILE* stream, long offset, int whence);
+    long tell(FILE* stream);
+    int rewindFile(FILE* stream);
+    int flush(FILE* stream);
+
     size_t readLine(char* result, size_t max_len, FILE *stream);
     size_t getLineCount(FILE *stream);
 
@@ -135,6 +143,130 @@ class FATInterface{
 	//bool _mounted;
 
 	static FATInterface* _static_instance;
+
+  #if ESP_PLATFORM == 1
+  // ---------------------------------------------------------------------------------
+  // Worker interno: todas las llamadas a FAT/VFS se ejecutan en este hilo
+  // (stack en RAM interna) para que los hilos de ActiveModule puedan ir
+  // opcionalmente a memoria externa sin arrastrar las restricciones de flash/FAT.
+  // ---------------------------------------------------------------------------------
+  enum class WorkerOp : uint8_t {
+    Mount,
+    Umount,
+    Open,
+    Close,
+    Unlink,
+    Write,
+    Read,
+    Seek,
+    Tell,
+    Rewind,
+    Flush,
+    ReadLine,
+    GetLineCount,
+    ListFolder,
+    CreateFolder,
+    CopyFile,
+    RenameFile,
+    EraseFile,
+    FileExists,
+    Format,
+    Stop
+  };
+
+  struct WorkerJob {
+    WorkerOp op;
+
+    // argumentos comunes
+    const char* filename;
+    const char* opentype;
+    const char* src;
+    const char* dest;
+    bool flag;
+
+    FILE* stream;
+    const void* wdata;
+    void* rdata;
+    size_t size;
+    size_t count;
+
+    long offset;
+    int whence;
+    char* line_buf;
+    size_t line_max;
+    std::list<const char*>* file_list;
+    const char* folder;
+
+    // resultados
+    int result_i;
+    bool result_b;
+    size_t result_sz;
+    long result_l;
+    FILE* result_fp;
+
+    Semaphore done;
+
+    explicit WorkerJob(WorkerOp op_) :
+      op(op_),
+      filename(NULL),
+      opentype(NULL),
+      src(NULL),
+      dest(NULL),
+      flag(false),
+      stream(NULL),
+      wdata(NULL),
+      rdata(NULL),
+      size(0),
+      count(0),
+      offset(0),
+      whence(0),
+      line_buf(NULL),
+      line_max(0),
+      file_list(NULL),
+      folder(NULL),
+      result_i(0),
+      result_b(false),
+      result_sz(0),
+      result_l(0),
+      result_fp(NULL),
+      done(0, 1) {
+    }
+  };
+
+  static constexpr uint32_t WorkerQueueDepth = 16;
+  Thread* _worker_th = NULL;
+  Semaphore _worker_started{0, 1};
+  Semaphore _worker_stopped{0, 1};
+  Queue<WorkerJob, WorkerQueueDepth> _worker_queue;
+  osThreadId _worker_tid = NULL;
+  bool _worker_ok = false;
+
+  void _ensureWorker();
+  bool _inWorkerContext() const;
+  void _workerTask();
+  void _dispatchJob(WorkerJob& job);
+
+  int _mount_internal(bool format);
+  int _umount_internal();
+  FILE* _open_internal(const char *filename,const char *opentype);
+  int _close_internal(FILE *stream);
+  int _unlink_internal(const char *filename);
+  size_t _write_internal(const void *data,size_t size,size_t count,FILE*stream);
+  size_t _read_internal(void *data,size_t size, size_t count,FILE *stream);
+  int _seek_internal(FILE* stream, long offset, int whence);
+  long _tell_internal(FILE* stream);
+  int _rewind_internal(FILE* stream);
+  int _flush_internal(FILE* stream);
+  size_t _readLine_internal(char* result, size_t max_len, FILE *stream);
+  size_t _getLineCount_internal(FILE *stream);
+  int _listFolder_internal(const char* folder, std::list<const char*> *file_list);
+  int _createFolder_internal(const char* folder);
+  int _copyFile_internal(const char* src, const char* dest, bool erase_src);
+  int _renameFile_internal(const char* src_file, const char* dest_file);
+  int _eraseFile_internal(const char* file);
+  bool _fileExists_internal(const char* file);
+  bool _format_internal();
+  #endif
 
 
 };
