@@ -75,6 +75,7 @@ FSManager::~FSManager(){
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 void FSManager::_ensureWorker(){
 	#if ESP_PLATFORM == 1
 	if(_worker_th != NULL){
@@ -194,6 +195,7 @@ void FSManager::_workerTask(){
 	}
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -214,6 +216,7 @@ int FSManager::init() {
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 int FSManager::_init_internal(){
 	#if ESP_PLATFORM == 1
 	_ready = false;
@@ -264,6 +267,7 @@ int FSManager::_init_internal(){
 	return -1;
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -284,6 +288,7 @@ bool FSManager::open(){
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 bool FSManager::_open_internal(){
 	#if ESP_PLATFORM == 1
 	// Mantiene compatibilidad con la API original: open/close pueden agrupar operaciones.
@@ -306,6 +311,7 @@ bool FSManager::_open_internal(){
 	return false;
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -325,6 +331,7 @@ void FSManager::close(){
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 void FSManager::_close_internal(bool force){
 	#if ESP_PLATFORM == 1
 	if(force){
@@ -343,6 +350,7 @@ void FSManager::_close_internal(bool force){
 	_handle = 0;
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -367,6 +375,7 @@ int FSManager::save(const char* data_id, void* data, uint32_t size, NVSInterface
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 int FSManager::_save_internal(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
 	#if ESP_PLATFORM == 1
 	if (!_ready) {
@@ -450,6 +459,7 @@ int FSManager::_save_internal(const char* data_id, void* data, uint32_t size, NV
 	return -1;
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -474,6 +484,7 @@ int FSManager::restore(const char* data_id, void* data, uint32_t size, NVSInterf
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 int FSManager::_restore_internal(const char* data_id, void* data, uint32_t size, NVSInterface::KeyValueType type){
 	#if ESP_PLATFORM == 1
 	bool temp_opened = false;
@@ -547,6 +558,7 @@ int FSManager::_restore_internal(const char* data_id, void* data, uint32_t size,
 	return -1;
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -568,6 +580,7 @@ bool FSManager::checkKey(const char* data_id){
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 bool FSManager::_checkKey_internal(const char* data_id){
 	#if ESP_PLATFORM == 1
 	bool temp_opened = false;
@@ -587,6 +600,7 @@ bool FSManager::_checkKey_internal(const char* data_id){
 	return false;
 	#endif
 }
+#endif
 
 
 //------------------------------------------------------------------------------------
@@ -608,6 +622,7 @@ int FSManager::removeKey(const char* data_id){
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 int FSManager::_removeKey_internal(const char* data_id){
 	#if ESP_PLATFORM == 1
 	bool temp_opened = false;
@@ -641,6 +656,7 @@ int FSManager::_removeKey_internal(const char* data_id){
 	return -1;
 	#endif
 }
+#endif
 
 //------------------------------------------------------------------------------------
 bool FSManager::erase(){
@@ -660,6 +676,7 @@ bool FSManager::erase(){
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 bool FSManager::_erase_internal(){
 	#if ESP_PLATFORM == 1
 	// Cierra handle para poder borrar partición
@@ -676,6 +693,7 @@ bool FSManager::_erase_internal(){
 	return false;
 	#endif
 }
+#endif
 
 
 void FSManager::list_nvs_keys() {
@@ -691,6 +709,7 @@ void FSManager::list_nvs_keys() {
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 void FSManager::_list_nvs_keys_internal() {
 	#if ESP_PLATFORM == 1
 	DEBUG_TRACE_E(true, _MODULE_, "Listando claves NVS...");
@@ -719,6 +738,7 @@ void FSManager::_list_nvs_keys_internal() {
     nvs_release_iterator(it);
 	#endif
 }
+#endif
 
 void FSManager::eraseKeyList(std::vector<std::string> keys_to_manage, bool delete_only_these) {
 	#if ESP_PLATFORM == 1
@@ -735,6 +755,7 @@ void FSManager::eraseKeyList(std::vector<std::string> keys_to_manage, bool delet
 
 
 //------------------------------------------------------------------------------------
+#if ESP_PLATFORM == 1
 void FSManager::_eraseKeyList_internal(std::vector<std::string>& keys_to_manage, bool delete_only_these) {
 	#if ESP_PLATFORM == 1
 	if(!_handle){
@@ -784,3 +805,4 @@ void FSManager::_eraseKeyList_internal(std::vector<std::string>& keys_to_manage,
     nvs_commit(_handle);
 	#endif
 }
+#endif
